@@ -1,0 +1,111 @@
+---
+title: 3. Primeiro repositório
+description: Crie um repositório, acompanhe mudanças com git status e git diff, faça commits e ignore arquivos com .gitignore.
+sidebar:
+  order: 3
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** criar um repositório e completar o ciclo básico — editar, ver o
+que mudou, preparar e gravar.
+
+## Conceito
+
+Todo trabalho com Git é um ciclo:
+
+> editar arquivos → `git status` / `git diff` → `git add` → `git commit` → repetir
+
+O `git status` é o comando mais importante desse ciclo: ele sempre diz em que
+estado estão seus arquivos e, muitas vezes, qual comando usar em seguida.
+
+## Passo a passo
+
+<Steps>
+
+1. Crie uma pasta e transforme-a em repositório:
+
+   <ComandoRef id="git-init" />
+
+2. Crie um arquivo e veja o que o Git acha dele:
+
+   ```bash
+   echo "# Meu projeto" > README.md
+   git status
+   ```
+
+   ```text
+   Untracked files:
+     README.md
+   ```
+
+   _Untracked_ quer dizer que o Git vê o arquivo, mas ainda não o acompanha.
+
+3. Coloque o arquivo no stage e grave o primeiro commit:
+
+   <ComandoRef id="git-add" />
+   <ComandoRef id="git-commit" />
+
+4. Edite o arquivo de novo e compare antes de gravar:
+
+   ```bash
+   echo "Um projeto de estudo." >> README.md
+   git diff
+   ```
+
+   <ComandoRef id="git-diff" />
+
+5. Grave e veja o histórico:
+
+   ```bash
+   git add README.md
+   git commit -m "docs: descreve o projeto"
+   git log --oneline
+   ```
+
+   <ComandoRef id="git-log-oneline" />
+
+</Steps>
+
+### Ignorando arquivos
+
+Alguns arquivos nunca devem ir para o repositório: dependências baixadas,
+arquivos de build, senhas. Liste-os num arquivo `.gitignore` na raiz:
+
+```text title=".gitignore"
+node_modules/
+dist/
+.env
+*.log
+```
+
+<Aviso>
+  O `.gitignore` só vale para arquivos que **ainda não** são rastreados. Se você já fez commit de um `.env`,
+  adicione-o ao `.gitignore` **e** pare de rastreá-lo com `git rm --cached .env`. Se o arquivo tinha uma
+  senha, troque a senha: ela continua no histórico.
+</Aviso>
+
+## O que pode dar errado
+
+- **`nothing added to commit`** — você esqueceu o `git add`. O commit só leva o
+  que está no stage.
+- **Commit com arquivo a mais.** Antes do commit, `git status` mostra o que está
+  em stage. Se algo entrou sem querer, `git restore --staged <arquivo>` tira do
+  stage (veja o [capítulo 6](/DevGuia/git/tutorial/desfazendo-coisas/)).
+- **Mensagens como "ajustes" ou "update".** Daqui a um mês ninguém sabe o que
+  mudou. Diga **o quê** e **por quê** — o [capítulo 8](/DevGuia/git/tutorial/fluxo-em-equipe/)
+  mostra um padrão.
+
+<Dica titulo="Commits pequenos">
+  Prefira vários commits com um assunto cada a um commit gigante no fim do dia. Use `git add -p` para escolher
+  só parte das mudanças de um arquivo.
+</Dica>
+
+## Resumo
+
+- Ciclo: editar → `status`/`diff` → `add` → `commit`.
+- `.gitignore` evita que arquivos indesejados entrem no repositório.
+- Todos os comandos em [referência: Básico](/DevGuia/git/referencia/#basico).

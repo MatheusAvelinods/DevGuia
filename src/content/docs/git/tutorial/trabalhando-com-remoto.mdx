@@ -1,0 +1,108 @@
+---
+title: 5. Trabalhando com remoto (GitHub)
+description: Conecte o repositório ao GitHub com SSH, envie com git push, atualize com git pull e entenda a diferença para git fetch.
+sidebar:
+  order: 5
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** publicar seu repositório no GitHub e manter local e remoto
+sincronizados.
+
+## Conceito
+
+Um **remoto** é outro repositório com quem o seu conversa — por convenção, o
+principal se chama `origin`. O Git guarda uma cópia de leitura da situação do
+remoto nas branches `origin/main`, `origin/feat/x` etc.
+
+- `git fetch` atualiza essas cópias (`origin/*`), **sem** mexer no seu trabalho.
+- `git pull` = `fetch` + integrar na sua branch (merge ou rebase).
+- `git push` envia seus commits ao remoto.
+
+## Passo a passo
+
+### Autenticar com SSH
+
+O GitHub não aceita sua senha no terminal. A forma mais simples e segura é uma
+chave SSH:
+
+<Steps>
+
+1. Gere a chave (aceite o caminho padrão e defina uma senha para ela):
+
+   ```bash
+   ssh-keygen -t ed25519 -C "voce@exemplo.com"
+   ```
+
+2. Copie a chave **pública** e cole no GitHub em _Settings → SSH and GPG keys →
+   New SSH key_:
+
+   ```bash
+   cat ~/.ssh/id_ed25519.pub
+   ```
+
+3. Teste a conexão:
+
+   ```bash
+   ssh -T git@github.com
+   # Hi usuario! You've successfully authenticated...
+   ```
+
+</Steps>
+
+<Aviso>Nunca compartilhe o arquivo **sem** `.pub` (`~/.ssh/id_ed25519`): ele é a chave privada.</Aviso>
+
+### Publicar um repositório local
+
+<Steps>
+
+1. Crie um repositório **vazio** no GitHub (sem README) e copie a URL SSH.
+2. Conecte e envie:
+
+   <ComandoRef id="git-remote-add" />
+   <ComandoRef id="git-push-u" />
+
+3. A partir daqui, para enviar e atualizar:
+
+   <ComandoRef id="git-push" />
+   <ComandoRef id="git-pull" />
+
+</Steps>
+
+### Ver o que chegou antes de integrar
+
+<ComandoRef id="git-fetch" />
+
+```bash
+git fetch
+git log --oneline main..origin/main   # commits do remoto que você não tem
+git diff main origin/main             # o que mudou
+git pull                              # integra quando estiver pronto
+```
+
+## O que pode dar errado
+
+- **`! [rejected] main -> main (fetch first)`.** Alguém enviou commits que você
+  não tem. Rode `git pull` (ou `git pull --rebase`), resolva conflitos se houver
+  e faça `push` de novo. **Não** use `--force` para "resolver".
+- **`Permission denied (publickey)`.** A chave SSH não está no GitHub ou o
+  remoto está em HTTPS. Confira com `git remote -v` e troque com
+  `git remote set-url`.
+- **`fatal: refusing to merge unrelated histories`.** O repositório do GitHub
+  foi criado com README e o local também tem commits. Para um projeto novo, o
+  mais simples é recriar o repositório remoto vazio.
+
+<Dica titulo="pull com rebase por padrão">
+  `git config --global pull.rebase true` evita aqueles commits "Merge branch 'main' of github.com…" no
+  histórico. O [capítulo 7](/DevGuia/git/tutorial/rebase-e-historico-limpo/) explica o rebase.
+</Dica>
+
+## Resumo
+
+- `origin` é o remoto principal; `origin/main` é a última foto que você tem dele.
+- `fetch` olha, `pull` integra, `push` envia.
+- Todos em [referência: Remoto](/DevGuia/git/referencia/#remoto).

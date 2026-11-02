@@ -1,0 +1,92 @@
+---
+title: 6. Desfazendo coisas
+description: Como desfazer em Git com segurança — descartar edições, tirar do stage, corrigir o último commit, reset, revert e recuperar com reflog.
+sidebar:
+  order: 6
+---
+
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** saber qual comando usa em cada situação de "ops", e quais deles
+apagam dados de verdade.
+
+## Conceito
+
+A pergunta certa é **onde está a mudança que você quer desfazer**:
+
+| Situação                                          | Comando                          | Perde dados? |
+| ------------------------------------------------- | -------------------------------- | ------------ |
+| Editei um arquivo e quero voltar ao último commit | `git restore <arquivo>`          | **Sim**      |
+| Dei `git add` sem querer                          | `git restore --staged <arquivo>` | Não          |
+| Errei a mensagem / esqueci um arquivo no commit   | `git commit --amend`             | Não\*        |
+| Quero desfazer o último commit (só local)         | `git reset --soft HEAD~1`        | Não          |
+| Quero apagar o último commit e tudo junto         | `git reset --hard HEAD~1`        | **Sim**      |
+| O commit já está no remoto                        | `git revert <commit>`            | Não          |
+
+\* reescreve o commit; problema só se ele já foi enviado.
+
+## Passo a passo por situação
+
+### Mudanças ainda não commitadas
+
+<ComandoRef id="git-restore-staged" />
+<ComandoRef id="git-restore" />
+
+<Dica titulo="Na dúvida, stash">
+  Se não tem certeza se vai precisar daquelas edições, use `git stash` em vez de `git restore`. Elas ficam
+  guardadas e você descarta depois com calma.
+</Dica>
+
+### O último commit (ainda não enviado)
+
+<ComandoRef id="git-commit-amend" />
+
+Os três modos do `reset` diferem no que fazem com as mudanças do commit
+desfeito:
+
+- `--soft` — voltam para o **stage**, prontas para um novo commit.
+- `--mixed` (padrão) — voltam para o **diretório de trabalho**.
+- `--hard` — **somem**, junto com qualquer edição não commitada.
+
+<ComandoRef id="git-reset-soft" />
+<ComandoRef id="git-reset-hard" />
+
+### Um commit que já está no remoto
+
+Se outras pessoas já podem ter baixado o commit, não reescreva o histórico:
+crie um commit que faz o contrário.
+
+<ComandoRef id="git-revert" />
+
+### Arquivos novos que você quer jogar fora
+
+<ComandoRef id="git-clean" />
+
+## A rede de segurança: reflog
+
+O Git anota cada movimento do `HEAD` por cerca de 90 dias. Se você fez um
+`reset --hard`, apagou uma branch ou um rebase deu errado, o commit
+provavelmente ainda está lá:
+
+<ComandoRef id="git-reflog" />
+
+<Aviso destrutivo titulo="O que o reflog não salva">
+  Edições que **nunca entraram em um commit** (nem em um stash). É por isso que `git restore`, `git reset
+  --hard` com mudanças pendentes e `git clean` são os comandos mais perigosos do Git.
+</Aviso>
+
+## O que pode dar errado
+
+- **Usar `reset` num commit já enviado** e depois brigar com o `push`
+  rejeitado. Para o que já está no remoto, use `revert`.
+- **Confundir `HEAD~1` com `HEAD^1`** — para commits normais são iguais. Em
+  dúvida, use o hash do `git log --oneline`.
+
+## Resumo
+
+- Primeiro descubra **onde** a mudança está; a tabela acima diz o comando.
+- `revert` para o que é público; `reset` só para o que é local.
+- `reflog` recupera commits; nada recupera o que nunca foi commitado.
+- Todos em [referência: Desfazer](/DevGuia/git/referencia/#desfazer).

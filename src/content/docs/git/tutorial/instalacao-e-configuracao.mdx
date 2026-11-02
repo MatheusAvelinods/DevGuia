@@ -1,0 +1,110 @@
+---
+title: 2. Instalação e git config
+description: Como instalar o Git no Windows, macOS e Linux e fazer a configuração inicial de nome, e-mail e branch padrão.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** ter o Git instalado e configurado com a sua identidade.
+
+## Conceito
+
+O Git guarda configurações em três níveis. O mais específico vence:
+
+| Nível      | Arquivo                      | Vale para                    |
+| ---------- | ---------------------------- | ---------------------------- |
+| `--system` | `/etc/gitconfig`             | todos os usuários da máquina |
+| `--global` | `~/.gitconfig`               | todos os seus repositórios   |
+| `--local`  | `.git/config` do repositório | só aquele repositório        |
+
+No dia a dia você usa `--global` para o padrão e `--local` para exceções (como
+um e-mail do trabalho em um repositório específico).
+
+## Passo a passo
+
+### Instalar
+
+<Tabs syncKey="so">
+  <TabItem label="Windows">
+    Baixe o instalador em [git-scm.com](https://git-scm.com/download/win) e
+    aceite as opções padrão. Ele instala também o **Git Bash**, um terminal onde
+    os comandos deste guia funcionam igual ao Linux. Com o `winget`:
+
+    ```powershell
+    winget install --id Git.Git -e
+    ```
+
+  </TabItem>
+  <TabItem label="macOS">
+    ```bash
+    xcode-select --install   # instala o Git da Apple
+    # ou, com Homebrew (versão mais recente):
+    brew install git
+    ```
+  </TabItem>
+  <TabItem label="Linux">
+    ```bash
+    sudo apt install git     # Debian/Ubuntu
+    sudo dnf install git     # Fedora
+    ```
+  </TabItem>
+</Tabs>
+
+Confira a instalação:
+
+```bash
+git --version
+# git version 2.x.y
+```
+
+### Configurar
+
+<Steps>
+
+1. Defina seu nome e e-mail. Eles aparecem em todo commit que você fizer.
+
+   <ComandoRef id="git-config-user-name" />
+   <ComandoRef id="git-config-user-email" />
+
+2. Faça os novos repositórios começarem na branch `main`:
+
+   <ComandoRef id="git-config-default-branch" />
+
+3. Escolha seu editor (usado em mensagens longas e no rebase interativo):
+
+   <ComandoRef id="git-config-editor" />
+
+4. Confira tudo:
+
+   <ComandoRef id="git-config-list" />
+
+</Steps>
+
+<Dica titulo="E-mail privado no GitHub">
+  Se não quiser expor seu e-mail, o GitHub oferece um endereço do tipo
+  `123456+usuario@users.noreply.github.com` em _Settings → Emails_. Use ele no `user.email`.
+</Dica>
+
+## O que pode dar errado
+
+- **Commits aparecem sem sua foto no GitHub.** O `user.email` não bate com um
+  e-mail da sua conta. Corrija com `git config --global user.email` (vale para os
+  próximos commits).
+- **`git: command not found`.** O terminal foi aberto antes da instalação, ou o
+  Git não está no `PATH`. Feche e abra o terminal de novo.
+
+<Aviso>
+  Não coloque senhas ou tokens no `~/.gitconfig`. Para autenticar no GitHub, use SSH ou o gerenciador de
+  credenciais — veja o [capítulo 5](/DevGuia/git/tutorial/trabalhando-com-remoto/).
+</Aviso>
+
+## Resumo
+
+- `git config --global` define o padrão; `--local` sobrescreve por repositório.
+- Configure ao menos `user.name`, `user.email` e `init.defaultBranch`.
+- Mais opções na [referência: Configuração](/DevGuia/git/referencia/#configuracao).

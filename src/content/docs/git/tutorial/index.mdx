@@ -1,0 +1,59 @@
+---
+title: Tutorial de Git
+description: Aprenda Git do zero ao uso diário em 8 capítulos curtos, com comandos para copiar e avisos nos que apagam dados.
+sidebar:
+  label: Visão geral
+  order: 0
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Este tutorial leva você do "o que é Git?" até o fluxo de trabalho de um time, em
+oito capítulos. Cada capítulo segue a mesma ordem: **objetivo → conceito → passo
+a passo → o que pode dar errado → resumo**.
+
+Se você já sabe o básico e só quer o comando, vá direto para a
+[referência de Git](/DevGuia/git/referencia/).
+
+<CardGrid>
+  <LinkCard
+    title="1. O que é versionamento"
+    href="/DevGuia/git/tutorial/o-que-e-versionamento/"
+    description="Por que usar Git e as quatro áreas onde suas mudanças vivem."
+  />
+  <LinkCard
+    title="2. Instalação e git config"
+    href="/DevGuia/git/tutorial/instalacao-e-configuracao/"
+    description="Instalar no Windows, macOS e Linux e se identificar."
+  />
+  <LinkCard
+    title="3. Primeiro repositório"
+    href="/DevGuia/git/tutorial/primeiro-repositorio/"
+    description="init, status, add, commit, log e .gitignore."
+  />
+  <LinkCard
+    title="4. Branches e merge"
+    href="/DevGuia/git/tutorial/branches-e-merge/"
+    description="Trabalhar em paralelo e juntar o resultado, inclusive com conflito."
+  />
+  <LinkCard
+    title="5. Trabalhando com remoto"
+    href="/DevGuia/git/tutorial/trabalhando-com-remoto/"
+    description="GitHub, SSH, push, pull e fetch."
+  />
+  <LinkCard
+    title="6. Desfazendo coisas"
+    href="/DevGuia/git/tutorial/desfazendo-coisas/"
+    description="restore, amend, reset, revert e o reflog como rede de segurança."
+  />
+  <LinkCard
+    title="7. Rebase e histórico limpo"
+    href="/DevGuia/git/tutorial/rebase-e-historico-limpo/"
+    description="Histórico linear, rebase interativo e quando não reescrever."
+  />
+  <LinkCard
+    title="8. Fluxo de trabalho em equipe"
+    href="/DevGuia/git/tutorial/fluxo-em-equipe/"
+    description="Branches de feature, Pull Requests e Conventional Commits."
+  />
+</CardGrid>

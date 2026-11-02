@@ -1,0 +1,119 @@
+---
+title: 8. Fluxo de trabalho em equipe
+description: Fluxo de feature branches com Pull Requests, revisão de código e mensagens no padrão Conventional Commits.
+sidebar:
+  order: 8
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** juntar tudo num fluxo que funciona em time — e em projetos
+pessoais também.
+
+## Conceito
+
+O fluxo mais comum hoje (às vezes chamado de _GitHub Flow_) é simples:
+
+- A `main` está **sempre** funcionando e pronta para publicar.
+- Todo trabalho acontece numa **branch curta**, criada a partir da `main`.
+- A branch volta para a `main` por um **Pull Request** (PR), depois de revisão e
+  CI verde.
+
+Um PR é um pedido para mesclar uma branch, com espaço para discutir, revisar
+linha a linha e rodar testes automáticos antes do merge.
+
+## Passo a passo
+
+<Steps>
+
+1. Comece sempre da `main` atualizada:
+
+   ```bash
+   git switch main
+   git pull
+   git switch -c feat/busca-por-tag
+   ```
+
+2. Trabalhe em commits pequenos, com mensagens claras (veja abaixo).
+
+3. Envie a branch:
+
+   ```bash
+   git push -u origin feat/busca-por-tag
+   ```
+
+4. Abra o PR no GitHub. Descreva **o que** mudou, **por quê** e **como testar**.
+
+5. Responda à revisão com novos commits na mesma branch — o PR atualiza sozinho.
+
+6. Se a `main` andou, atualize sua branch (`git fetch` + `git rebase origin/main`
+   ou `git merge origin/main`).
+
+7. Depois do merge, limpe:
+
+   ```bash
+   git switch main
+   git pull
+   git branch -d feat/busca-por-tag
+   git fetch --prune
+   ```
+
+</Steps>
+
+## Conventional Commits
+
+Um padrão de mensagem que deixa o histórico legível e permite gerar changelog e
+versões automaticamente:
+
+```text
+<tipo>(escopo opcional): descrição no imperativo
+
+corpo opcional explicando o porquê
+```
+
+| Tipo       | Quando usar                                 |
+| ---------- | ------------------------------------------- |
+| `feat`     | nova funcionalidade                         |
+| `fix`      | correção de bug                             |
+| `docs`     | só documentação                             |
+| `refactor` | mudança de código sem alterar comportamento |
+| `test`     | testes                                      |
+| `chore`    | manutenção (dependências, configuração)     |
+| `ci`       | pipelines de CI/CD                          |
+
+Exemplos:
+
+```text
+feat(busca): permite filtrar comandos por tag
+fix: corrige link quebrado na página de Docker
+docs: explica a diferença entre fetch e pull
+feat!: remove suporte ao Node 18
+```
+
+O `!` (ou um rodapé `BREAKING CHANGE:`) indica uma mudança incompatível.
+
+<Dica titulo="Nomes de branch">
+  Use o mesmo vocabulário no nome da branch: `feat/login`, `fix/link-docker`, `docs/readme`. Fica fácil saber
+  do que se trata só pela lista.
+</Dica>
+
+## O que pode dar errado
+
+- **PRs gigantes.** Ninguém revisa bem 2.000 linhas. Quebre em PRs menores que
+  façam sentido sozinhos.
+- **Branch que vive semanas.** Quanto mais tempo longe da `main`, maiores os
+  conflitos. Integre cedo e com frequência.
+
+<Aviso>
+  Proteja a `main` no GitHub (_Settings → Branches_) exigindo PR e CI verde. Assim ninguém — nem você com
+  pressa — envia direto para ela.
+</Aviso>
+
+## Resumo
+
+- `main` sempre estável; trabalho em branches curtas; integração por PR.
+- Mensagens no formato `tipo: descrição`.
+- Parabéns, você terminou o tutorial! Guarde a [referência de Git](/DevGuia/git/referencia/)
+  para consultas rápidas.

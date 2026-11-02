@@ -1,0 +1,112 @@
+---
+title: 4. Branches e merge
+description: Crie branches para trabalhar em paralelo, junte o trabalho com git merge e resolva conflitos.
+sidebar:
+  order: 4
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+
+**Objetivo:** desenvolver algo numa branch separada e trazer o resultado para a
+`main`, inclusive quando há conflito.
+
+## Conceito
+
+Uma branch é só um ponteiro para um commit. Quando você faz um commit, o
+ponteiro da branch atual anda para a frente. O `HEAD` indica em qual branch você
+está.
+
+```text
+main:        A───B───C
+                      \
+feat/login:            D───E   ← HEAD
+```
+
+Para juntar `feat/login` na `main`, o Git tem dois caminhos:
+
+- **Fast-forward** — se a `main` não andou desde que a branch foi criada, o Git
+  só move o ponteiro da `main` para `E`. Nenhum commit novo.
+- **Commit de merge** — se as duas andaram, o Git cria um commit que tem dois
+  "pais", unindo as histórias.
+
+## Passo a passo
+
+<Steps>
+
+1. Crie uma branch para a nova funcionalidade:
+
+   <ComandoRef id="git-switch-c" />
+
+2. Faça commits normalmente nela. Para ver onde está cada branch:
+
+   <ComandoRef id="git-log-graph" />
+
+3. Volte para a `main` e traga o trabalho:
+
+   <ComandoRef id="git-switch" />
+   <ComandoRef id="git-merge" />
+
+4. Apague a branch que já foi mesclada:
+
+   <ComandoRef id="git-branch-d" />
+
+</Steps>
+
+## Conflitos
+
+Um conflito acontece quando as duas branches mudaram **as mesmas linhas** do
+mesmo arquivo. O Git não adivinha qual versão vale e para o merge:
+
+```text
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.
+```
+
+O arquivo fica com marcadores:
+
+```html
+<<<<<<< HEAD
+<h1>Bem-vindo</h1>
+=======
+<h1>Olá!</h1>
+>>>>>>> feat/login
+```
+
+Para resolver:
+
+<Steps>
+
+1. Edite o arquivo deixando o conteúdo final que você quer e **apague os
+   marcadores** (`<<<<<<<`, `=======`, `>>>>>>>`).
+2. Marque como resolvido com `git add index.html`.
+3. Conclua com `git commit` (o Git já sugere a mensagem).
+
+</Steps>
+
+Se ficou confuso e quiser recomeçar:
+
+<ComandoRef id="git-merge-abort" />
+
+<Dica titulo="Conflito no editor">
+  O VS Code e outros editores mostram botões como "Accept Current", "Accept Incoming" e "Accept Both" em cima
+  dos marcadores. É o mesmo processo, só mais visual.
+</Dica>
+
+## O que pode dar errado
+
+- **`Your local changes would be overwritten by checkout`.** Você tem mudanças
+  não commitadas que conflitam com a outra branch. Faça commit ou guarde com
+  `git stash` antes de trocar.
+- **Fazer commit direto na `main` sem querer.** Crie a branch a partir dali
+  (`git switch -c feat/x`) — os commits vão junto — e depois volte a `main` ao
+  estado do remoto (veja o [capítulo 6](/DevGuia/git/tutorial/desfazendo-coisas/)).
+- **Esquecer marcadores no arquivo.** Antes do `git add`, procure por `<<<<<<<`.
+
+## Resumo
+
+- `git switch -c` cria e entra na branch; `git merge` junta.
+- Conflito = mesmas linhas alteradas nos dois lados; resolva, `add`, `commit`.
+- Mais em [referência: Branches](/DevGuia/git/referencia/#branches) e
+  [Merge e rebase](/DevGuia/git/referencia/#merge-e-rebase).

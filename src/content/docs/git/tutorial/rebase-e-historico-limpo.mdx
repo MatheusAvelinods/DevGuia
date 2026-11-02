@@ -1,0 +1,94 @@
+---
+title: 7. Rebase e histórico limpo
+description: Entenda git rebase, use o rebase interativo para organizar commits e saiba quando não reescrever o histórico.
+sidebar:
+  order: 7
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** manter sua branch atualizada sem commits de merge e organizar seus
+commits antes de abrir um Pull Request.
+
+## Conceito
+
+Merge e rebase resolvem o mesmo problema — sua branch ficou para trás — de
+formas diferentes:
+
+```text
+Antes:           A───B───C        main
+                      \
+                       D───E      feat
+
+Com merge:       A───B───C───────M   (M une as duas histórias)
+                      \         /
+                       D───E───
+
+Com rebase:      A───B───C───D'───E'   (D e E reaplicados depois de C)
+```
+
+O rebase cria commits **novos** (`D'`, `E'`) com o mesmo conteúdo, mas hashes
+diferentes. O histórico fica linear, como se você tivesse começado a branch
+agora.
+
+<Aviso destrutivo titulo="A regra de ouro">
+  Não faça rebase de commits que outras pessoas já baixaram. Para elas, os commits antigos "somem" e aparecem
+  cópias — e o histórico de todo mundo fica bagunçado. Rebase é para a **sua** branch, antes ou durante a
+  revisão.
+</Aviso>
+
+## Passo a passo
+
+### Atualizar sua branch com a main
+
+<Steps>
+
+1. Traga as novidades do remoto: `git fetch`
+2. Reaplique seus commits em cima da `main` atualizada:
+
+   <ComandoRef id="git-rebase" />
+
+3. Se houver conflito, resolva como no merge, depois:
+
+   <ComandoRef id="git-rebase-continue" />
+
+4. Se a branch já estava no remoto, envie com segurança:
+
+   <ComandoRef id="git-push-force-with-lease" />
+
+</Steps>
+
+### Organizar commits antes do PR
+
+Antes de pedir revisão, transforme "wip", "corrige typo", "agora vai" em
+commits que contam uma história:
+
+<ComandoRef id="git-rebase-i" />
+
+```text
+pick a1b2c3d feat: formulário de login
+s    d4e5f6a wip
+s    b7c8d9e corrige typo
+r    e1f2a3b feat: validação de senha
+```
+
+Ao salvar, o Git junta os commits marcados com `s` no de cima e pede uma nova
+mensagem para o marcado com `r`.
+
+## O que pode dar errado
+
+- **Conflitos repetidos em vários commits.** No rebase cada commit é reaplicado,
+  então um mesmo conflito pode aparecer mais de uma vez. Se ficar difícil,
+  `git rebase --abort` e use merge.
+- **`push` rejeitado depois do rebase.** É esperado: o histórico mudou. Use
+  `--force-with-lease`, nunca `--force` puro.
+- **Perdeu commits no rebase interativo.** Eles estão no `git reflog`.
+
+## Resumo
+
+- Rebase = histórico linear, mas reescreve commits; merge = preserva tudo.
+- Rebase só em commits que ainda são só seus.
+- `rebase -i` organiza commits; `--force-with-lease` envia com segurança.
+- Mais em [referência: Merge e rebase](/DevGuia/git/referencia/#merge-e-rebase).

@@ -1,0 +1,83 @@
+---
+title: 1. O que é versionamento
+description: Por que usar Git, o que é um commit e as quatro áreas por onde suas mudanças passam.
+sidebar:
+  order: 1
+---
+
+import AreasGit from '../../../../components/AreasGit.astro';
+import Dica from '../../../../components/Dica.astro';
+
+**Objetivo:** entender o problema que o Git resolve e o vocabulário básico
+(repositório, commit, branch) antes de digitar qualquer comando.
+
+## O problema
+
+Quem nunca teve uma pasta assim?
+
+```text
+relatorio.docx
+relatorio_final.docx
+relatorio_final_v2.docx
+relatorio_final_v2_AGORA_VAI.docx
+```
+
+Copiar arquivos para guardar versões funciona até o dia em que você precisa
+saber **o que** mudou entre duas versões, **quem** mudou, ou juntar o trabalho de
+duas pessoas que editaram o mesmo arquivo. Um **sistema de controle de versão**
+resolve isso guardando um histórico organizado de cada mudança.
+
+## O que o Git faz
+
+O Git é o sistema de controle de versão mais usado do mundo. Ele é
+**distribuído**: cada cópia do projeto (cada _clone_) tem o histórico completo,
+então você trabalha offline e só sincroniza quando quiser.
+
+Três conceitos sustentam todo o resto:
+
+- **Repositório** — a pasta do projeto mais o histórico, guardado na pasta
+  oculta `.git`.
+- **Commit** — uma "foto" do projeto em um momento, com autor, data, mensagem e
+  um identificador único (o _hash_, como `a1b2c3d`). Commits formam uma corrente:
+  cada um aponta para o anterior.
+- **Branch** — uma linha de trabalho. É só um ponteiro para um commit, por isso
+  criar branches é instantâneo e barato.
+
+## As quatro áreas
+
+A parte que mais confunde quem está começando: uma mudança não vai direto do seu
+arquivo para o histórico. Ela passa por áreas, e cada comando move a mudança de
+uma área para a próxima.
+
+<AreasGit />
+
+1. **Diretório de trabalho** — os arquivos que você edita normalmente.
+2. **Staging** (ou _índice_) — uma área de preparação. Você escolhe quais
+   mudanças vão entrar no próximo commit.
+3. **Repositório local** — o histórico de commits, na sua máquina.
+4. **Remoto** — uma cópia do repositório num servidor (GitHub, GitLab…), para
+   backup e colaboração.
+
+<Dica titulo="Por que existe o staging?">
+  Ele deixa você fazer commits pequenos e com um assunto só. Se você mexeu em três coisas, pode gravar cada
+  uma num commit separado — e o histórico fica fácil de entender e de desfazer.
+</Dica>
+
+## Git não é GitHub
+
+**Git** é o programa que roda na sua máquina. **GitHub** (assim como GitLab e
+Bitbucket) é um serviço que hospeda repositórios Git e adiciona coisas como Pull
+Requests, issues e CI. Dá para usar Git sem GitHub; o contrário não.
+
+## O que pode dar errado
+
+- **Achar que salvar o arquivo já guarda a versão.** Não guarda: só o commit
+  registra no histórico.
+- **Achar que commit envia para o GitHub.** Não envia: o commit é local. Quem
+  envia é o `git push`.
+
+## Resumo
+
+- Git guarda o histórico do projeto em commits encadeados.
+- Mudanças passam por: trabalho → staging → repositório local → remoto.
+- Próximo passo: [instalar e configurar o Git](/DevGuia/git/tutorial/instalacao-e-configuracao/).
