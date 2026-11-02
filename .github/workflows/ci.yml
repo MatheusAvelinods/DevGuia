@@ -1,0 +1,31 @@
+# Valida todo PR (e pushes fora da main): tipos, build, testes e links.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Checagem de tipos (TS + .astro). Na Fase 1 também valida o schema Zod dos YAML.
+      - run: npm run check
+      # O build falha se algum conteúdo não passar no schema das Content Collections.
+      - run: npm run build
+      - run: npm run check:links
+      - run: npm test

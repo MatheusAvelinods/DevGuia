@@ -1,0 +1,32 @@
+---
+title: DevGuia
+description: Guia em PT-BR de comandos Git, Docker e mais — tutoriais para aprender e referência rápida para consultar.
+template: splash
+hero:
+  tagline: O comando certo, com exemplo e aviso quando ele é destrutivo. Tutoriais para aprender, referência rápida para consultar.
+  actions:
+    - text: Começar pelo Git
+      link: /DevGuia/git/tutorial/
+      icon: right-arrow
+    - text: Começar pelo Docker
+      link: /DevGuia/docker/tutorial/
+      icon: right-arrow
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="Git" icon="seti:git">
+    Versionamento do zero ao uso diário: branches, merge, rebase, desfazer e
+    remoto. [Tutorial](/DevGuia/git/tutorial/) ·
+    [Referência](/DevGuia/git/referencia/)
+  </Card>
+  <Card title="Docker" icon="seti:docker">
+    Containers, imagens, volumes, redes e Compose.
+    [Tutorial](/DevGuia/docker/tutorial/) ·
+    [Referência](/DevGuia/docker/referencia/)
+  </Card>
+</CardGrid>
+
+Use a busca (<kbd>/</kbd> ou <kbd>Ctrl</kbd>+<kbd>K</kbd>) para achar qualquer comando.
