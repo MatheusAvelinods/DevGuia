@@ -1,0 +1,36 @@
+---
+// Página de referência gerada para cada tecnologia em src/content/tecnologias.yaml.
+// Adicionar tecnologia nova não exige mudar este arquivo.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getCollection } from 'astro:content';
+import ListaComandos from '../../components/ListaComandos.astro';
+import { categoriasDe } from '../../lib/comandos';
+
+export async function getStaticPaths() {
+  const tecnologias = await getCollection('tecnologias');
+  return tecnologias.map((tec) => ({ params: { tecnologia: tec.id }, props: { tec } }));
+}
+
+const { tec } = Astro.props;
+const categorias = await categoriasDe(tec.id);
+if (categorias.length === 0) {
+  throw new Error(`A tecnologia "${tec.id}" não tem nenhum YAML em src/content/commands/${tec.id}/`);
+}
+const total = categorias.reduce((n, c) => n + c.comandos.length, 0);
+---
+
+<StarlightPage
+  frontmatter={{
+    title: `Referência de ${tec.data.nome}`,
+    description: `${total} comandos de ${tec.data.nome} com exemplo, flags e aviso nos destrutivos. ${tec.data.descricao}`,
+    editUrl: `https://github.com/MatheusAvelinods/DevGuia/tree/main/src/content/commands/${tec.id}`,
+  }}
+  headings={categorias.map((c) => ({ depth: 2, slug: c.slug, text: c.categoria }))}
+>
+  <p>
+    {total} comandos de {tec.data.nome} agrupados por categoria. Use o botão ao lado de cada comando para
+    copiar; os destrutivos têm borda vermelha e um aviso do que se perde. Use <kbd>Ctrl</kbd>+<kbd>K</kbd>{' '}
+    para buscar.
+  </p>
+  <ListaComandos categorias={categorias} />
+</StarlightPage>

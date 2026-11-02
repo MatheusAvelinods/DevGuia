@@ -1,0 +1,14 @@
+---
+// Mostra num tutorial um comando definido no YAML, sem duplicar o conteúdo.
+// Uso no MDX: <ComandoRef id="git-reset-soft" />
+import { buscarComando } from '../lib/comandos';
+import CardComando from './CardComando.astro';
+
+interface Props {
+  id: string;
+}
+
+const comando = await buscarComando(Astro.props.id);
+---
+
+<CardComando comando={comando} ancora={false} linkReferencia />

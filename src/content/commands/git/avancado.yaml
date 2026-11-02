@@ -1,0 +1,73 @@
+categoria: Avançado
+ordem: 10
+descricao: Ferramentas para investigar bugs, trabalhar em paralelo e manter o repositório.
+comandos:
+  - id: git-bisect
+    comando: git bisect start
+    descricao: Busca binária no histórico para encontrar o commit que introduziu um bug.
+    exemplo: |
+      git bisect start
+      git bisect bad              # versão atual tem o bug
+      git bisect good v1.2.0      # essa versão funcionava
+      # teste cada commit sugerido e responda good ou bad
+      git bisect reset            # termina e volta à branch
+    nivel: avancado
+    tags: [bug, investigar, bisect]
+    relacionados: [git-log-s, git-blame]
+
+  - id: git-worktree-add
+    comando: git worktree add ../hotfix main
+    descricao: Abre outra branch numa pasta separada, sem precisar de stash nem de um segundo clone.
+    exemplo: |
+      git worktree add ../hotfix main
+      cd ../hotfix               # trabalhe aqui em paralelo
+      git worktree list
+      git worktree remove ../hotfix
+    nivel: avancado
+    tags: [worktree, paralelo, branch]
+    relacionados: [git-stash]
+
+  - id: git-grep
+    comando: git grep "texto"
+    descricao: Procura um texto nos arquivos rastreados — mais rápido que grep e ignora o que está no .gitignore.
+    flags:
+      - flag: -n
+        descricao: Mostra o número da linha.
+      - flag: -i
+        descricao: Ignora maiúsculas/minúsculas.
+    nivel: intermediario
+    tags: [busca, texto]
+    relacionados: [git-log-s]
+
+  - id: git-submodule-update
+    comando: git submodule update --init --recursive
+    descricao: Baixa e inicializa os submódulos (repositórios dentro do repositório) depois de um clone.
+    exemplo: |
+      git clone --recurse-submodules <url>   # já faz tudo no clone
+    nivel: avancado
+    tags: [submodulo, dependencia]
+    relacionados: [git-clone]
+
+  - id: git-update-index-skip
+    comando: git update-index --skip-worktree <arquivo>
+    descricao: Faz o Git ignorar mudanças locais num arquivo já rastreado (por exemplo, config local), sem tirá-lo do repositório.
+    exemplo: |
+      git update-index --skip-worktree config/local.json
+      git update-index --no-skip-worktree config/local.json   # desfaz
+    nivel: avancado
+    tags: [ignorar, arquivo, config]
+    relacionados: [git-rm]
+
+  - id: git-gc
+    comando: git gc
+    descricao: Compacta o repositório e remove objetos inacessíveis antigos, liberando espaço.
+    nivel: avancado
+    tags: [manutencao, espaco]
+    relacionados: [git-reflog]
+
+  - id: git-archive
+    comando: git archive -o projeto.zip HEAD
+    descricao: Gera um .zip (ou .tar) com os arquivos de um commit, sem a pasta .git.
+    nivel: intermediario
+    tags: [exportar, zip, release]
+    relacionados: [git-tag-a]

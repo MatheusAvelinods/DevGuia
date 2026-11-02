@@ -1,0 +1,80 @@
+categoria: Merge e rebase
+ordem: 4
+descricao: Juntar o trabalho de branches diferentes.
+comandos:
+  - id: git-merge
+    comando: git merge <branch>
+    descricao: Traz para a branch atual os commits de outra branch.
+    exemplo: |
+      git switch main
+      git merge feat/login
+    flags:
+      - flag: --no-ff
+        descricao: Sempre cria um commit de merge, mesmo quando daria para avançar direto (fast-forward).
+      - flag: --squash
+        descricao: Junta tudo em uma única mudança em stage, sem commit de merge.
+    nivel: basico
+    tags: [merge, juntar]
+    relacionados: [git-merge-abort, git-rebase]
+
+  - id: git-merge-abort
+    comando: git merge --abort
+    descricao: Cancela um merge com conflitos e volta ao estado de antes do merge.
+    nivel: intermediario
+    tags: [merge, conflito, cancelar]
+    relacionados: [git-merge, git-rebase-abort]
+
+  - id: git-rebase
+    comando: git rebase <branch>
+    descricao: Reaplica seus commits em cima da ponta de outra branch, deixando o histórico linear.
+    exemplo: |
+      git switch feat/login
+      git rebase main       # seus commits passam a vir depois dos de main
+    destrutivo: true
+    aviso: Reescreve os commits da branch (novos hashes). Não faça em branches que outras pessoas já baixaram; se já enviou, vai precisar de push --force-with-lease.
+    nivel: intermediario
+    tags: [rebase, historico, linear]
+    relacionados: [git-merge, git-rebase-continue, git-push-force-with-lease]
+
+  - id: git-rebase-i
+    comando: git rebase -i HEAD~3
+    descricao: Rebase interativo dos últimos 3 commits — permite reordenar, juntar (squash), renomear ou descartar commits.
+    exemplo: |
+      git rebase -i HEAD~3
+      # no editor, troque "pick" por:
+      #   r (reword) — mudar a mensagem
+      #   s (squash) — juntar com o commit de cima
+      #   d (drop)   — descartar o commit
+    destrutivo: true
+    aviso: Reescreve o histórico e "drop" descarta commits. Use só em commits que ainda não foram compartilhados; o git reflog permite desfazer.
+    nivel: avancado
+    tags: [rebase, interativo, squash, historico]
+    relacionados: [git-rebase, git-reflog]
+
+  - id: git-rebase-continue
+    comando: git rebase --continue
+    descricao: Continua o rebase depois que você resolveu um conflito e adicionou os arquivos ao stage.
+    exemplo: |
+      # resolva o conflito no editor, depois:
+      git add arquivo-resolvido.txt
+      git rebase --continue
+    nivel: intermediario
+    tags: [rebase, conflito]
+    relacionados: [git-rebase-abort]
+
+  - id: git-rebase-abort
+    comando: git rebase --abort
+    descricao: Cancela o rebase em andamento e devolve a branch ao estado anterior.
+    nivel: intermediario
+    tags: [rebase, conflito, cancelar]
+    relacionados: [git-rebase-continue, git-merge-abort]
+
+  - id: git-cherry-pick
+    comando: git cherry-pick <commit>
+    descricao: Copia um commit específico de outra branch para a branch atual.
+    exemplo: |
+      git log --oneline outra-branch   # ache o hash
+      git cherry-pick a1b2c3d
+    nivel: intermediario
+    tags: [commit, copiar, cherry-pick]
+    relacionados: [git-log-oneline]

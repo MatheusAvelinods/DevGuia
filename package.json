@@ -15,7 +15,11 @@
     "check": "astro check",
     "test": "vitest run",
     "check:links": "node scripts/checar-links.mjs dist /DevGuia",
-    "astro": "astro"
+    "astro": "astro",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "count": "node scripts/contar-comandos.mjs --min git=60",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@astrojs/starlight": "^0.42.8",
@@ -24,7 +28,16 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "globals": "^17.14.0",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.2",
     "typescript": "^6.0.3",
-    "vitest": "^5.1.0"
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^5.1.0",
+    "yaml": "^2.9.1"
   }
 }

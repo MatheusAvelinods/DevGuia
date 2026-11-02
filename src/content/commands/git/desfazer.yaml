@@ -1,0 +1,98 @@
+categoria: Desfazer
+ordem: 6
+descricao: Voltar atrás — do arquivo editado sem querer ao commit que não devia existir.
+comandos:
+  - id: git-restore
+    comando: git restore <arquivo>
+    descricao: Descarta as mudanças não commitadas de um arquivo, voltando ao conteúdo do último commit.
+    destrutivo: true
+    aviso: As edições descartadas não ficam em lugar nenhum, nem no reflog. Se tiver dúvida, use git stash antes.
+    nivel: basico
+    tags: [desfazer, arquivo, descartar, checkout]
+    relacionados: [git-restore-staged, git-stash]
+
+  - id: git-restore-staged
+    comando: git restore --staged <arquivo>
+    descricao: Tira o arquivo do stage, mas mantém as mudanças no diretório de trabalho.
+    nivel: basico
+    tags: [desfazer, stage, add]
+    relacionados: [git-add, git-restore]
+
+  - id: git-commit-amend
+    comando: git commit --amend
+    descricao: Corrige o último commit — muda a mensagem ou inclui arquivos esquecidos (adicione-os ao stage antes).
+    exemplo: |
+      git add arquivo-esquecido.js
+      git commit --amend --no-edit   # mantém a mensagem
+      git commit --amend -m "nova mensagem"
+    destrutivo: true
+    aviso: Substitui o último commit por outro (novo hash). Se ele já foi enviado ao remoto, evite — ou vai precisar de push --force-with-lease.
+    nivel: basico
+    tags: [commit, corrigir, mensagem, desfazer]
+    relacionados: [git-reset-soft, git-push-force-with-lease]
+
+  - id: git-reset-soft
+    comando: git reset --soft HEAD~1
+    descricao: Desfaz o último commit e mantém as alterações em stage.
+    exemplo: |
+      git reset --soft HEAD~1
+      git status   # arquivos continuam prontos para commit
+    nivel: intermediario
+    tags: [commit, desfazer, reset]
+    relacionados: [git-reset-mixed, git-reset-hard, git-revert]
+
+  - id: git-reset-mixed
+    comando: git reset HEAD~1
+    descricao: Desfaz o último commit e devolve as alterações ao diretório de trabalho, fora do stage (modo padrão, --mixed).
+    nivel: intermediario
+    tags: [commit, desfazer, reset]
+    relacionados: [git-reset-soft, git-reset-hard]
+
+  - id: git-reset-hard
+    comando: git reset --hard HEAD~1
+    descricao: Apaga o último commit e todas as alterações não commitadas.
+    destrutivo: true
+    aviso: Alterações locais não commitadas são perdidas de vez. O commit removido ainda pode ser recuperado pelo git reflog. Prefira git revert em branches compartilhadas.
+    nivel: intermediario
+    tags: [commit, desfazer, reset]
+    relacionados: [git-reset-soft, git-revert, git-reflog]
+
+  - id: git-revert
+    comando: git revert <commit>
+    descricao: Cria um commit novo que desfaz as mudanças de um commit antigo, sem reescrever o histórico. Seguro em branches compartilhadas.
+    exemplo: |
+      git revert a1b2c3d
+      git revert HEAD        # desfaz o último commit
+    nivel: intermediario
+    tags: [commit, desfazer, seguro]
+    relacionados: [git-reset-hard, git-reset-soft]
+
+  - id: git-clean
+    comando: git clean -fd
+    descricao: Apaga arquivos e pastas não rastreados pelo Git (que nunca foram adicionados).
+    exemplo: |
+      git clean -nd    # simulação: lista o que seria apagado
+      git clean -fd    # apaga de verdade
+    flags:
+      - flag: -n
+        descricao: Simulação (dry run) — só mostra o que seria apagado.
+      - flag: -x
+        descricao: Também apaga arquivos ignorados pelo .gitignore (por exemplo, node_modules, .env).
+    destrutivo: true
+    aviso: Arquivos não rastreados não estão em nenhum commit, então não há como recuperar. Rode antes com -n para conferir; cuidado redobrado com -x, que apaga também .env e afins.
+    nivel: intermediario
+    tags: [limpeza, apagar, untracked]
+    relacionados: [git-status, git-restore]
+
+  - id: git-reflog
+    comando: git reflog
+    descricao: Lista tudo por onde o HEAD passou (commits, resets, rebases). É a rede de segurança para recuperar commits "perdidos".
+    exemplo: |
+      git reflog
+      # a1b2c3d HEAD@{2}: commit: feat: tela de login
+      git reset --hard a1b2c3d   # volta para aquele ponto
+      # ou, sem mexer na branch atual:
+      git switch -c resgate a1b2c3d
+    nivel: avancado
+    tags: [recuperar, historico, reflog]
+    relacionados: [git-reset-hard, git-branch-d-forcar]

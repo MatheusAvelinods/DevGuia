@@ -1,0 +1,171 @@
+---
+// Cartão de comando: o elemento mais usado do site.
+// Linha 1: comando + copiar · Linha 2: descrição · selos · aviso · flags · exemplo · relacionados.
+import { Badge, Code } from '@astrojs/starlight/components';
+import type { ComandoIndexado } from '../lib/comandos-core';
+import { todosComandos, urlComando } from '../lib/comandos';
+import { ROTULO_NIVEL } from '../lib/schema-comandos';
+
+interface Props {
+  comando: ComandoIndexado;
+  /** Na referência o cartão é o "dono" do id (âncora). No tutorial, não. */
+  ancora?: boolean;
+  /** Mostra link "ver na referência" (usado pelo ComandoRef). */
+  linkReferencia?: boolean;
+}
+
+const { comando: c, ancora = true, linkReferencia = false } = Astro.props;
+const todos = await todosComandos();
+const relacionados = c.relacionados
+  .map((id) => todos.find((x) => x.id === id))
+  .filter((x): x is ComandoIndexado => Boolean(x));
+const varianteNivel = { basico: 'success', intermediario: 'note', avancado: 'tip' } as const;
+---
+
+<article class="cmd not-content" data-nivel={c.nivel} data-destrutivo={c.destrutivo ? 'sim' : 'nao'}>
+  {
+    /* Título só para leitores de tela e para a busca: o Pagefind usa títulos com id
+       como sub-resultados, então a busca leva direto ao comando. */
+    ancora ? (
+      <h3 class="sr-only cmd-titulo" id={c.id}>
+        {c.comando}
+      </h3>
+    ) : (
+      <p class="sr-only">Comando: {c.comando}</p>
+    )
+  }
+  <Code code={c.comando} lang="bash" frame="none" />
+  <p class="cmd-desc">{c.descricao}</p>
+  <div class="cmd-selos">
+    <Badge text={ROTULO_NIVEL[c.nivel]} variant={varianteNivel[c.nivel]} />
+    {c.destrutivo && <Badge text="⚠ Destrutivo" variant="danger" />}
+  </div>
+  {c.destrutivo && c.aviso && (
+    <p class="cmd-aviso">
+      <strong>Cuidado:</strong> {c.aviso}
+    </p>
+  )}
+  {c.flags.length > 0 && (
+    <dl class="cmd-flags">
+      {c.flags.map((f) => (
+        <div>
+          <dt>
+            <code>{f.flag}</code>
+          </dt>
+          <dd>{f.descricao}</dd>
+        </div>
+      ))}
+    </dl>
+  )}
+  {c.exemplo && (
+    <details class="cmd-exemplo">
+      <summary>Exemplo</summary>
+      <Code code={c.exemplo.trimEnd()} lang="bash" />
+    </details>
+  )}
+  {(relacionados.length > 0 || linkReferencia) && (
+    <p class="cmd-rodape">
+      {relacionados.length > 0 && (
+        <span>
+          Relacionados:{' '}
+          {relacionados.map((r, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a href={urlComando(r)}>
+                <code>{r.comando}</code>
+              </a>
+            </>
+          ))}
+        </span>
+      )}
+      {linkReferencia && (
+        <a class="cmd-ref" href={urlComando(c)}>
+          Ver na referência →
+        </a>
+      )}
+    </p>
+  )}
+</article>
+
+<style>
+  .cmd {
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-block: 1rem;
+    background: var(--sl-color-bg);
+  }
+  .cmd-titulo {
+    scroll-margin-top: calc(var(--sl-nav-height) + 1.5rem);
+  }
+  .cmd[data-destrutivo='sim'] {
+    border-color: var(--sl-color-red);
+    border-inline-start-width: 4px;
+  }
+  .cmd:has(.cmd-titulo:target) {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+  .cmd-desc {
+    margin: 0.6rem 0 0.4rem;
+    color: var(--sl-color-white);
+  }
+  .cmd-selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .cmd-aviso {
+    margin: 0.6rem 0 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    background: var(--sl-color-red-low);
+    color: var(--sl-color-red-high);
+    font-size: var(--sl-text-sm);
+  }
+  .cmd-flags {
+    margin: 0.6rem 0 0;
+    font-size: var(--sl-text-sm);
+  }
+  .cmd-flags > div {
+    display: grid;
+    grid-template-columns: minmax(6rem, max-content) 1fr;
+    gap: 0.75rem;
+    padding-block: 0.15rem;
+  }
+  .cmd-flags dd {
+    margin: 0;
+  }
+  .cmd code {
+    font-size: 0.875em;
+    overflow-wrap: anywhere;
+  }
+  .cmd-exemplo {
+    margin-top: 0.6rem;
+    font-size: var(--sl-text-sm);
+  }
+  .cmd-exemplo summary {
+    cursor: pointer;
+    color: var(--sl-color-text-accent);
+    width: fit-content;
+  }
+  .cmd-exemplo summary:focus-visible {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+  .cmd-exemplo[open] summary {
+    margin-bottom: 0.4rem;
+  }
+  .cmd-rodape {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: 0.6rem 0 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .cmd-rodape a {
+    color: var(--sl-color-text-accent);
+  }
+</style>

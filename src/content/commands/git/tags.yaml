@@ -1,0 +1,43 @@
+categoria: Tags
+ordem: 9
+descricao: Marcar versões (v1.0.0) em commits específicos.
+comandos:
+  - id: git-tag
+    comando: git tag
+    descricao: Lista as tags do repositório.
+    flags:
+      - flag: -l "v1.*"
+        descricao: Filtra por padrão.
+    nivel: basico
+    tags: [tag, versao, listar]
+    relacionados: [git-tag-a]
+
+  - id: git-tag-a
+    comando: git tag -a v1.0.0 -m "Versão 1.0.0"
+    descricao: Cria uma tag anotada (com autor, data e mensagem) no commit atual — o tipo recomendado para versões.
+    exemplo: |
+      git tag -a v1.0.0 -m "Versão 1.0.0"
+      git tag -a v0.9.0 a1b2c3d -m "Versão 0.9.0"   # em um commit antigo
+    nivel: basico
+    tags: [tag, versao, release]
+    relacionados: [git-push-tags, git-tag]
+
+  - id: git-push-tags
+    comando: git push origin --tags
+    descricao: Envia as tags locais ao remoto (o git push comum não envia tags).
+    exemplo: |
+      git push origin v1.0.0    # só uma tag
+      git push origin --tags    # todas
+    nivel: basico
+    tags: [tag, remoto, enviar]
+    relacionados: [git-tag-a]
+
+  - id: git-tag-d
+    comando: git tag -d v1.0.0
+    descricao: Apaga uma tag local.
+    exemplo: |
+      git tag -d v1.0.0
+      git push origin --delete v1.0.0   # apaga também no remoto
+    nivel: intermediario
+    tags: [tag, apagar]
+    relacionados: [git-tag]

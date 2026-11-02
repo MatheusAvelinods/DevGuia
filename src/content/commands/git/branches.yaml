@@ -1,0 +1,72 @@
+categoria: Branches
+ordem: 3
+descricao: Linhas de trabalho independentes para desenvolver sem mexer na principal.
+comandos:
+  - id: git-branch
+    comando: git branch
+    descricao: Lista as branches locais e marca com * a branch atual.
+    flags:
+      - flag: -a
+        descricao: Inclui as branches remotas.
+      - flag: -v
+        descricao: Mostra o último commit de cada branch.
+    nivel: basico
+    tags: [branch, listar]
+    relacionados: [git-switch-c, git-branch-d]
+
+  - id: git-switch-c
+    comando: git switch -c <nova-branch>
+    descricao: Cria uma branch nova a partir da atual e já muda para ela.
+    exemplo: |
+      git switch -c feat/login
+      # equivalente antigo:
+      git checkout -b feat/login
+    nivel: basico
+    tags: [branch, criar, switch, checkout]
+    relacionados: [git-switch, git-branch]
+
+  - id: git-switch
+    comando: git switch <branch>
+    descricao: Muda para uma branch existente, atualizando os arquivos da pasta.
+    exemplo: |
+      git switch main
+      git switch -          # volta para a branch anterior
+    nivel: basico
+    tags: [branch, trocar, switch, checkout]
+    relacionados: [git-switch-c, git-stash]
+
+  - id: git-branch-m
+    comando: git branch -m <novo-nome>
+    descricao: Renomeia a branch atual.
+    exemplo: |
+      git branch -m feat/login-social
+      git branch -m antigo novo     # renomeia outra branch
+    nivel: basico
+    tags: [branch, renomear]
+    relacionados: [git-branch]
+
+  - id: git-branch-d
+    comando: git branch -d <branch>
+    descricao: Apaga uma branch local que já foi mesclada. O Git recusa se ainda houver commits não mesclados.
+    nivel: basico
+    tags: [branch, apagar]
+    relacionados: [git-branch-d-forcar, git-push-delete]
+
+  - id: git-branch-d-forcar
+    comando: git branch -D <branch>
+    descricao: Força a remoção de uma branch local, mesmo com commits que não existem em nenhum outro lugar.
+    destrutivo: true
+    aviso: Commits que só existem nessa branch ficam órfãos. Dá para recuperar pelo git reflog por algumas semanas, depois são apagados.
+    nivel: intermediario
+    tags: [branch, apagar, forcar]
+    relacionados: [git-branch-d, git-reflog]
+
+  - id: git-branch-merged
+    comando: git branch --merged
+    descricao: Lista as branches cujo trabalho já foi incorporado à branch atual — boas candidatas a apagar.
+    flags:
+      - flag: --no-merged
+        descricao: O contrário — branches com trabalho ainda não mesclado.
+    nivel: intermediario
+    tags: [branch, listar, limpeza]
+    relacionados: [git-branch-d]

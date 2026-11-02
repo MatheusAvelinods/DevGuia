@@ -1,0 +1,75 @@
+categoria: Histórico e inspeção
+ordem: 5
+descricao: Entender o que mudou, quando e por quem.
+comandos:
+  - id: git-log
+    comando: git log
+    descricao: Lista os commits da branch atual, do mais novo para o mais antigo (q para sair).
+    flags:
+      - flag: -n 5
+        descricao: Mostra só os 5 últimos.
+      - flag: -p
+        descricao: Inclui o diff de cada commit.
+      - flag: --author="nome"
+        descricao: Filtra por autor.
+    nivel: basico
+    tags: [log, historico]
+    relacionados: [git-log-oneline, git-show]
+
+  - id: git-log-oneline
+    comando: git log --oneline
+    descricao: Histórico compacto, uma linha por commit com hash curto e mensagem.
+    nivel: basico
+    tags: [log, historico, resumo]
+    relacionados: [git-log, git-log-graph]
+
+  - id: git-log-graph
+    comando: git log --oneline --graph --all
+    descricao: Desenha o grafo de todas as branches, mostrando onde elas se separam e se juntam.
+    nivel: intermediario
+    tags: [log, grafo, branches]
+    relacionados: [git-log-oneline, git-config-alias]
+
+  - id: git-log-arquivo
+    comando: git log --follow -p -- <arquivo>
+    descricao: Histórico completo de um arquivo, com as mudanças de cada commit, mesmo depois de renomeado.
+    nivel: intermediario
+    tags: [log, arquivo, historico]
+    relacionados: [git-blame]
+
+  - id: git-log-s
+    comando: git log -S "texto"
+    descricao: Encontra os commits que adicionaram ou removeram um trecho de texto (o "pickaxe").
+    exemplo: |
+      git log -S "calcularFrete" --oneline
+    nivel: avancado
+    tags: [log, busca, texto]
+    relacionados: [git-grep, git-log]
+
+  - id: git-show
+    comando: git show <commit>
+    descricao: Mostra os detalhes e o diff de um commit. Sem argumento, mostra o último.
+    exemplo: |
+      git show
+      git show a1b2c3d
+      git show HEAD~2:src/app.js   # arquivo como estava 2 commits atrás
+    nivel: basico
+    tags: [commit, inspecao, diff]
+    relacionados: [git-log, git-diff]
+
+  - id: git-blame
+    comando: git blame <arquivo>
+    descricao: Mostra, linha por linha, qual commit e autor alterou cada trecho do arquivo por último.
+    flags:
+      - flag: -L 10,20
+        descricao: Limita às linhas 10 a 20.
+    nivel: intermediario
+    tags: [blame, autor, inspecao]
+    relacionados: [git-log-arquivo, git-show]
+
+  - id: git-shortlog
+    comando: git shortlog -sn
+    descricao: Conta quantos commits cada autor fez, em ordem decrescente.
+    nivel: intermediario
+    tags: [log, autores, estatistica]
+    relacionados: [git-log]

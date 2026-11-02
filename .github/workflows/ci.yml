@@ -1,4 +1,4 @@
-# Valida todo PR (e pushes fora da main): tipos, build, testes e links.
+# Valida todo PR (e pushes fora da main): lint, tipos, schema, build, links, testes e Lighthouse.
 name: CI
 
 on:
@@ -23,9 +23,22 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Checagem de tipos (TS + .astro). Na Fase 1 também valida o schema Zod dos YAML.
+
+      # ESLint + Prettier
+      - run: npm run lint
+      # Checagem de tipos (TS + .astro)
       - run: npm run check
-      # O build falha se algum conteúdo não passar no schema das Content Collections.
+      # Meta do MVP: mínimo de comandos por tecnologia
+      - run: npm run count
+      # Testes de unidade: schema Zod dos YAML, regras entre arquivos, verificador de links
+      - run: npm test
+      # O build também valida os YAML (Content Collections) e falha se algo estiver incompleto
       - run: npm run build
       - run: npm run check:links
-      - run: npm test
+
+      # Smoke test no navegador: páginas, filtro, copiar e busca de todos os comandos
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+      # Lighthouse ≥ 95 em performance, acessibilidade e SEO (lighthouserc.json)
+      - run: npx @lhci/cli@0.15.1 autorun

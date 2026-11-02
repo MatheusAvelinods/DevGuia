@@ -17,7 +17,8 @@ function criarSite(arquivos: Record<string, string>) {
 describe('checarLinks', () => {
   it('aceita links válidos com base, relativos e externos', async () => {
     const dir = criarSite({
-      'index.html': '<a href="/DevGuia/git/">git</a><a href="sobre/">s</a><a href="https://x.com">x</a>',
+      'index.html':
+        '<h1 id="topo"></h1><a href="/DevGuia/git/">git</a><a href="sobre/">s</a><a href="https://x.com">x</a>',
       'git/index.html': '<a href="/DevGuia/#topo">home</a>',
       'sobre/index.html': '',
     });
@@ -32,6 +33,16 @@ describe('checarLinks', () => {
     const quebrados = await checarLinks(dir, '/DevGuia');
     expect(quebrados.map((q) => q.url)).toEqual(['/DevGuia/nao-existe/', '/git/']);
   });
+
+  it('confere âncoras na mesma página e em outras páginas', async () => {
+    const dir = criarSite({
+      'index.html':
+        '<h2 id="ok">x</h2><a href="#ok">a</a><a href="#nao">b</a><a href="/DevGuia/git/#reset">c</a><a href="/DevGuia/git/#sumiu">d</a>',
+      'git/index.html': '<article id="reset"></article>',
+    });
+    const quebrados = await checarLinks(dir, '/DevGuia');
+    expect(quebrados.map((q) => q.url)).toEqual(['#nao', '/DevGuia/git/#sumiu']);
+  });
 });
 
 describe.skipIf(!existsSync('dist'))('site gerado (dist/)', () => {
@@ -40,7 +51,12 @@ describe.skipIf(!existsSync('dist'))('site gerado (dist/)', () => {
   });
 
   it('gera as páginas principais', () => {
-    for (const pagina of ['index.html', 'git/tutorial/index.html', 'docker/tutorial/index.html', '404.html']) {
+    for (const pagina of [
+      'index.html',
+      'git/tutorial/index.html',
+      'docker/tutorial/index.html',
+      '404.html',
+    ]) {
       expect(existsSync(path.join('dist', pagina)), pagina).toBe(true);
     }
   });

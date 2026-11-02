@@ -1,0 +1,104 @@
+categoria: Básico
+ordem: 2
+descricao: O ciclo do dia a dia — criar, acompanhar e gravar mudanças.
+comandos:
+  - id: git-init
+    comando: git init
+    descricao: Transforma a pasta atual em um repositório Git (cria a pasta oculta .git).
+    exemplo: |
+      mkdir meu-projeto && cd meu-projeto
+      git init
+    nivel: basico
+    tags: [repositorio, criar, init]
+    relacionados: [git-clone, git-config-default-branch]
+
+  - id: git-clone
+    comando: git clone <url>
+    descricao: Baixa um repositório remoto completo, com todo o histórico, para uma pasta nova.
+    exemplo: |
+      git clone https://github.com/usuario/projeto.git
+      git clone https://github.com/usuario/projeto.git outro-nome
+    flags:
+      - flag: --depth 1
+        descricao: Clona só o último commit (mais rápido, sem histórico).
+      - flag: -b <branch>
+        descricao: Já faz checkout de uma branch específica.
+    nivel: basico
+    tags: [repositorio, remoto, baixar]
+    relacionados: [git-init, git-remote-v]
+
+  - id: git-status
+    comando: git status
+    descricao: Mostra em que branch você está e quais arquivos foram modificados, estão em stage ou não são rastreados.
+    flags:
+      - flag: -s
+        descricao: Formato curto, uma linha por arquivo.
+    nivel: basico
+    tags: [status, inspecao]
+    relacionados: [git-diff, git-add]
+
+  - id: git-add
+    comando: git add <arquivo>
+    descricao: Coloca as mudanças de um arquivo no stage, ou seja, marca o que vai no próximo commit.
+    exemplo: |
+      git add index.html
+      git add src/          # uma pasta inteira
+      git add .             # tudo que mudou na pasta atual
+    nivel: basico
+    tags: [stage, add, commit]
+    relacionados: [git-add-p, git-restore-staged, git-commit]
+
+  - id: git-add-p
+    comando: git add -p
+    descricao: Revisa as mudanças pedaço por pedaço e escolhe quais vão para o stage (y = sim, n = não, s = dividir).
+    nivel: intermediario
+    tags: [stage, add, parcial, interativo]
+    relacionados: [git-add, git-commit]
+
+  - id: git-commit
+    comando: git commit -m "mensagem"
+    descricao: Grava no histórico tudo o que está em stage, com uma mensagem descrevendo a mudança.
+    exemplo: |
+      git add .
+      git commit -m "feat: adiciona página de contato"
+    flags:
+      - flag: -m "<msg>"
+        descricao: Mensagem na própria linha de comando (sem abrir o editor).
+      - flag: -a
+        descricao: Inclui automaticamente arquivos já rastreados que foram modificados (não inclui arquivos novos).
+    nivel: basico
+    tags: [commit, gravar]
+    relacionados: [git-add, git-commit-amend]
+
+  - id: git-diff
+    comando: git diff
+    descricao: Mostra as mudanças que ainda não estão em stage, linha por linha.
+    exemplo: |
+      git diff                  # trabalho x stage
+      git diff --staged         # stage x último commit
+      git diff main..minha-branch
+    flags:
+      - flag: --staged
+        descricao: Compara o stage com o último commit (o que vai entrar no commit).
+      - flag: --stat
+        descricao: Resumo de arquivos e quantidade de linhas alteradas.
+    nivel: basico
+    tags: [diff, inspecao, mudancas]
+    relacionados: [git-status, git-show]
+
+  - id: git-rm
+    comando: git rm <arquivo>
+    descricao: Remove o arquivo do disco e registra a remoção no stage.
+    flags:
+      - flag: --cached
+        descricao: Para de rastrear o arquivo, mas mantém ele no disco (útil ao adicionar ao .gitignore).
+    nivel: basico
+    tags: [remover, arquivo]
+    relacionados: [git-mv]
+
+  - id: git-mv
+    comando: git mv <antigo> <novo>
+    descricao: Renomeia ou move um arquivo rastreado e já registra a mudança no stage.
+    nivel: basico
+    tags: [renomear, mover, arquivo]
+    relacionados: [git-rm]

@@ -1,0 +1,12 @@
+---
+// Didática visual (PRD): azul = dica.
+import { Aside } from '@astrojs/starlight/components';
+interface Props {
+  titulo?: string;
+}
+const { titulo = 'Dica' } = Astro.props;
+---
+
+<Aside type="note" title={titulo}>
+  <slot />
+</Aside>

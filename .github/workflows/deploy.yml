@@ -28,6 +28,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run check:links
+      - run: npm test
       # Fase 3: gerar cheatsheet.pdf/.md/.html e copiar para dist/downloads/.
       - uses: actions/upload-pages-artifact@v4
         with:

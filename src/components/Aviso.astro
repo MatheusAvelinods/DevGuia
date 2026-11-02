@@ -1,0 +1,14 @@
+---
+// Didática visual (PRD): amarelo = atenção; vermelho = destrutivo.
+import { Aside } from '@astrojs/starlight/components';
+interface Props {
+  titulo?: string;
+  /** true = vermelho (perde dados). Padrão: amarelo (atenção). */
+  destrutivo?: boolean;
+}
+const { destrutivo = false, titulo = destrutivo ? 'Destrutivo' : 'Atenção' } = Astro.props;
+---
+
+<Aside type={destrutivo ? 'danger' : 'caution'} title={titulo}>
+  <slot />
+</Aside>

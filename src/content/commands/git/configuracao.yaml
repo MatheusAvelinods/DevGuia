@@ -1,0 +1,72 @@
+categoria: Configuração
+ordem: 1
+descricao: Identidade, editor e preferências. Faça uma vez por máquina.
+comandos:
+  - id: git-config-user-name
+    comando: git config --global user.name "Seu Nome"
+    descricao: Define o nome que aparece como autor dos seus commits.
+    nivel: basico
+    tags: [config, identidade, autor]
+    relacionados: [git-config-user-email, git-config-list]
+
+  - id: git-config-user-email
+    comando: git config --global user.email "voce@exemplo.com"
+    descricao: Define o e-mail dos seus commits. Use o mesmo cadastrado no GitHub para os commits serem vinculados à sua conta.
+    exemplo: |
+      git config --global user.email "voce@exemplo.com"
+      # só para o repositório atual (ex.: e-mail do trabalho):
+      git config user.email "voce@empresa.com"
+    flags:
+      - flag: --global
+        descricao: Vale para todos os repositórios do seu usuário (~/.gitconfig).
+      - flag: --local
+        descricao: Vale só para o repositório atual (padrão quando nenhum escopo é passado).
+    nivel: basico
+    tags: [config, identidade, email]
+    relacionados: [git-config-user-name]
+
+  - id: git-config-default-branch
+    comando: git config --global init.defaultBranch main
+    descricao: Faz o git init criar a branch inicial com o nome main em vez de master.
+    nivel: basico
+    tags: [config, branch, init]
+    relacionados: [git-init]
+
+  - id: git-config-editor
+    comando: git config --global core.editor "code --wait"
+    descricao: Escolhe o editor aberto para mensagens de commit, rebase interativo e afins.
+    exemplo: |
+      git config --global core.editor "code --wait"   # VS Code
+      git config --global core.editor "nano"          # nano no terminal
+    nivel: basico
+    tags: [config, editor]
+
+  - id: git-config-pull-rebase
+    comando: git config --global pull.rebase true
+    descricao: Faz o git pull usar rebase em vez de merge, evitando commits de merge desnecessários no histórico.
+    nivel: intermediario
+    tags: [config, pull, rebase]
+    relacionados: [git-pull, git-pull-rebase]
+
+  - id: git-config-alias
+    comando: git config --global alias.st status
+    descricao: Cria um atalho; depois disso, git st equivale a git status.
+    exemplo: |
+      git config --global alias.st status
+      git config --global alias.lg "log --oneline --graph --all"
+      git lg
+    nivel: intermediario
+    tags: [config, alias, atalho]
+    relacionados: [git-log-graph]
+
+  - id: git-config-list
+    comando: git config --list --show-origin
+    descricao: Lista todas as configurações ativas e o arquivo de onde cada uma vem.
+    flags:
+      - flag: --show-origin
+        descricao: Mostra o arquivo de origem de cada valor.
+      - flag: --global / --local
+        descricao: Restringe a listagem a um escopo.
+    nivel: basico
+    tags: [config, inspecao]
+    relacionados: [git-config-user-name]

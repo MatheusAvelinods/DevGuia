@@ -1,0 +1,86 @@
+---
+// Diagrama das quatro áreas do Git e dos comandos que movem mudanças entre elas.
+const areas = [
+  { nome: 'Diretório de trabalho', detalhe: 'seus arquivos no disco' },
+  { nome: 'Staging (índice)', detalhe: 'o que vai no próximo commit' },
+  { nome: 'Repositório local', detalhe: 'histórico de commits (.git)' },
+  { nome: 'Remoto', detalhe: 'GitHub, GitLab…' },
+];
+const setas = ['git add', 'git commit', 'git push'];
+---
+
+<figure class="areas not-content">
+  <ol>
+    {areas.map((a, i) => (
+      <>
+        <li>
+          <strong>{a.nome}</strong>
+          <span>{a.detalhe}</span>
+        </li>
+        {setas[i] && (
+          <li class="seta" aria-hidden="true">
+            <code>{setas[i]}</code>
+          </li>
+        )}
+      </>
+    ))}
+  </ol>
+  <figcaption>
+    As áreas do Git: <code>git add</code> leva mudanças ao staging, <code>git commit</code> grava no histórico
+    local e <code>git push</code> envia ao remoto. <code>git pull</code> faz o caminho de volta.
+  </figcaption>
+</figure>
+
+<style>
+  .areas {
+    margin-block: 1.5rem;
+  }
+  .areas ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .areas li:not(.seta) {
+    flex: 1 1 8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.75rem;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    background: var(--sl-color-gray-6);
+    text-align: center;
+  }
+  .areas li span {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-2);
+  }
+  .seta {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-text-accent);
+  }
+  .seta::after {
+    content: ' →';
+  }
+  figcaption {
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  @media (max-width: 40rem) {
+    .areas ol {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .seta {
+      text-align: center;
+    }
+    .seta::after {
+      content: ' ↓';
+    }
+  }
+</style>

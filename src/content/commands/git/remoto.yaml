@@ -1,0 +1,85 @@
+categoria: Remoto
+ordem: 8
+descricao: Sincronizar com GitHub, GitLab e outros servidores.
+comandos:
+  - id: git-remote-v
+    comando: git remote -v
+    descricao: Lista os remotos configurados e suas URLs (origin costuma ser o principal).
+    nivel: basico
+    tags: [remoto, listar, origin]
+    relacionados: [git-remote-add]
+
+  - id: git-remote-add
+    comando: git remote add origin <url>
+    descricao: Conecta o repositório local a um remoto com o nome origin.
+    exemplo: |
+      git remote add origin git@github.com:usuario/projeto.git
+      git push -u origin main
+    nivel: basico
+    tags: [remoto, adicionar, origin]
+    relacionados: [git-remote-v, git-push-u, git-remote-set-url]
+
+  - id: git-remote-set-url
+    comando: git remote set-url origin <nova-url>
+    descricao: Troca a URL de um remoto — por exemplo, de HTTPS para SSH ou após renomear o repositório.
+    nivel: intermediario
+    tags: [remoto, url, ssh, https]
+    relacionados: [git-remote-v]
+
+  - id: git-fetch
+    comando: git fetch
+    descricao: Baixa commits e branches novos do remoto sem mexer nos seus arquivos nem na sua branch.
+    flags:
+      - flag: --prune
+        descricao: Remove referências locais a branches que foram apagadas no remoto.
+      - flag: --all
+        descricao: Busca de todos os remotos.
+    nivel: basico
+    tags: [remoto, baixar, sincronizar]
+    relacionados: [git-pull, git-log-graph]
+
+  - id: git-pull
+    comando: git pull
+    descricao: Baixa as novidades do remoto e integra na branch atual (fetch + merge, ou rebase se configurado).
+    nivel: basico
+    tags: [remoto, baixar, atualizar]
+    relacionados: [git-fetch, git-pull-rebase, git-config-pull-rebase]
+
+  - id: git-pull-rebase
+    comando: git pull --rebase
+    descricao: Atualiza a branch reaplicando seus commits locais por cima do que veio do remoto, sem commit de merge.
+    nivel: intermediario
+    tags: [remoto, rebase, atualizar]
+    relacionados: [git-pull, git-config-pull-rebase]
+
+  - id: git-push
+    comando: git push
+    descricao: Envia os commits da branch atual para o remoto.
+    nivel: basico
+    tags: [remoto, enviar]
+    relacionados: [git-push-u, git-pull]
+
+  - id: git-push-u
+    comando: git push -u origin <branch>
+    descricao: Envia uma branch nova e a vincula ao remoto; depois disso, basta git push e git pull.
+    nivel: basico
+    tags: [remoto, enviar, upstream]
+    relacionados: [git-push, git-switch-c]
+
+  - id: git-push-force-with-lease
+    comando: git push --force-with-lease
+    descricao: Sobrescreve a branch remota com a sua versão (após rebase ou amend), mas recusa se alguém enviou commits que você ainda não tem.
+    destrutivo: true
+    aviso: Substitui o histórico remoto da branch. Nunca use em main ou em branches compartilhadas sem combinar com o time. Prefira sempre --force-with-lease a --force, que apaga o trabalho de outros sem avisar.
+    nivel: avancado
+    tags: [remoto, enviar, forcar, rebase]
+    relacionados: [git-rebase, git-commit-amend]
+
+  - id: git-push-delete
+    comando: git push origin --delete <branch>
+    descricao: Apaga uma branch no remoto (por exemplo, depois que o PR foi mesclado).
+    destrutivo: true
+    aviso: A branch some do remoto para todo mundo. Commits que não foram mesclados em outra branch ficam difíceis de recuperar.
+    nivel: intermediario
+    tags: [remoto, branch, apagar]
+    relacionados: [git-branch-d, git-fetch]

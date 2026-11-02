@@ -13,3 +13,6 @@ npm-debug.log*
 
 # sistema
 .DS_Store
+
+# lighthouse
+.lighthouseci/

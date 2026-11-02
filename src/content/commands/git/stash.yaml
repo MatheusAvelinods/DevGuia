@@ -1,0 +1,60 @@
+categoria: Stash
+ordem: 7
+descricao: Guardar mudanças temporariamente sem fazer commit.
+comandos:
+  - id: git-stash
+    comando: git stash
+    descricao: Guarda as mudanças não commitadas numa pilha e deixa o diretório limpo, como no último commit.
+    exemplo: |
+      git stash -m "wip: formulário"
+      git switch main     # resolve outra coisa
+      git switch -
+      git stash pop
+    flags:
+      - flag: -u
+        descricao: Inclui arquivos não rastreados.
+      - flag: -m "<msg>"
+        descricao: Dá um nome ao stash para achar depois.
+    nivel: basico
+    tags: [stash, guardar, temporario]
+    relacionados: [git-stash-pop, git-stash-list]
+
+  - id: git-stash-list
+    comando: git stash list
+    descricao: Lista os stashes guardados (stash@{0} é o mais recente).
+    nivel: basico
+    tags: [stash, listar]
+    relacionados: [git-stash, git-stash-show]
+
+  - id: git-stash-show
+    comando: git stash show -p stash@{0}
+    descricao: Mostra o diff guardado em um stash sem aplicá-lo.
+    nivel: intermediario
+    tags: [stash, inspecao, diff]
+    relacionados: [git-stash-list]
+
+  - id: git-stash-pop
+    comando: git stash pop
+    descricao: Aplica o stash mais recente e o remove da pilha.
+    nivel: basico
+    tags: [stash, aplicar]
+    relacionados: [git-stash-apply, git-stash]
+
+  - id: git-stash-apply
+    comando: git stash apply stash@{1}
+    descricao: Aplica um stash específico e mantém ele na pilha (útil para aplicar em mais de uma branch).
+    nivel: intermediario
+    tags: [stash, aplicar]
+    relacionados: [git-stash-pop, git-stash-drop]
+
+  - id: git-stash-drop
+    comando: git stash drop stash@{0}
+    descricao: Apaga um stash da pilha.
+    flags:
+      - flag: git stash clear
+        descricao: Apaga todos os stashes de uma vez.
+    destrutivo: true
+    aviso: As mudanças guardadas no stash são descartadas. Confira antes com git stash show -p; com git stash clear, todos se vão.
+    nivel: intermediario
+    tags: [stash, apagar]
+    relacionados: [git-stash-list, git-stash-show]

@@ -1,0 +1,6 @@
+# Cada tecnologia precisa de uma entrada aqui e de uma pasta
+# src/content/commands/<id>/ com os YAML das categorias.
+- id: git
+  nome: Git
+  descricao: Comandos de Git para versionar código, do básico ao avançado.
+  ordem: 1
