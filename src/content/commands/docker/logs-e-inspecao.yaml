@@ -1,0 +1,73 @@
+categoria: Logs e inspeção
+ordem: 3
+descricao: Descobrir o que está acontecendo dentro dos containers.
+comandos:
+  - id: docker-logs
+    comando: docker logs <container>
+    descricao: Mostra tudo que o container escreveu na saída padrão e de erro.
+    flags:
+      - flag: --tail 100
+        descricao: Só as últimas 100 linhas.
+      - flag: --since 10m
+        descricao: Só os últimos 10 minutos.
+      - flag: -t
+        descricao: Mostra data e hora de cada linha.
+    nivel: basico
+    tags: [logs, debug]
+    relacionados: [docker-logs-f, docker-compose-logs]
+
+  - id: docker-logs-f
+    comando: docker logs -f --tail 50 <container>
+    descricao: Acompanha os logs ao vivo, começando pelas últimas 50 linhas (Ctrl+C para sair).
+    nivel: basico
+    tags: [logs, tempo-real, debug]
+    relacionados: [docker-logs]
+
+  - id: docker-inspect
+    comando: docker inspect <container-ou-imagem>
+    descricao: Mostra toda a configuração em JSON — IP, volumes, variáveis de ambiente, portas, comando de início.
+    nivel: intermediario
+    tags: [inspecao, config, json]
+    relacionados: [docker-inspect-format, docker-network-inspect, docker-volume-inspect]
+
+  - id: docker-inspect-format
+    comando: docker inspect --format '{{.State.Status}}' <container>
+    descricao: Extrai só um campo do inspect usando um template Go.
+    exemplo: |
+      docker inspect --format '{{.State.Status}}' web
+      docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' web
+      docker inspect --format '{{json .Mounts}}' web
+    nivel: avancado
+    tags: [inspecao, template, script]
+    relacionados: [docker-inspect]
+
+  - id: docker-stats
+    comando: docker stats
+    descricao: Painel ao vivo de CPU, memória, rede e disco de cada container.
+    flags:
+      - flag: --no-stream
+        descricao: Mostra uma vez e sai.
+    nivel: basico
+    tags: [desempenho, memoria, cpu, monitoramento]
+    relacionados: [docker-top, docker-ps]
+
+  - id: docker-top
+    comando: docker top <container>
+    descricao: Lista os processos rodando dentro do container.
+    nivel: intermediario
+    tags: [processos, inspecao]
+    relacionados: [docker-stats]
+
+  - id: docker-port
+    comando: docker port <container>
+    descricao: Mostra quais portas do container estão publicadas e em qual porta da sua máquina.
+    nivel: basico
+    tags: [porta, rede, inspecao]
+    relacionados: [docker-run-d]
+
+  - id: docker-diff
+    comando: docker diff <container>
+    descricao: Lista os arquivos que o container criou (A), alterou (C) ou apagou (D) em relação à imagem.
+    nivel: avancado
+    tags: [arquivos, inspecao, debug]
+    relacionados: [docker-inspect, docker-cp]

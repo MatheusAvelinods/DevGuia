@@ -1,0 +1,85 @@
+categoria: Limpeza
+ordem: 8
+descricao: Recuperar espaço em disco — com cuidado para não apagar o que importa.
+comandos:
+  - id: docker-system-df
+    comando: docker system df
+    descricao: Mostra quanto espaço imagens, containers, volumes e cache de build ocupam — e quanto dá para recuperar.
+    flags:
+      - flag: -v
+        descricao: Detalha item por item.
+    nivel: basico
+    tags: [limpeza, espaco, disco]
+    relacionados: [docker-system-prune]
+
+  - id: docker-container-prune
+    comando: docker container prune
+    descricao: Remove todos os containers parados.
+    destrutivo: true
+    aviso: Qualquer container parado some, junto com os dados gravados fora de volumes. Confira antes com docker ps -a.
+    nivel: intermediario
+    tags: [limpeza, container, apagar]
+    relacionados: [docker-ps-a, docker-rm]
+
+  - id: docker-image-prune
+    comando: docker image prune
+    descricao: Remove imagens "dangling" — sem tag, sobras de builds anteriores. Imagens com tag não são tocadas.
+    nivel: basico
+    tags: [limpeza, imagem]
+    relacionados: [docker-image-prune-a, docker-images]
+
+  - id: docker-image-prune-a
+    comando: docker image prune -a
+    descricao: Remove todas as imagens que nenhum container usa, mesmo as que têm tag.
+    destrutivo: true
+    aviso: Imagens que você construiu e não enviou a um registry precisam ser reconstruídas; as do Docker Hub, baixadas de novo. Containers parados também "seguram" imagens, então limpe-os antes se quiser liberar mais.
+    nivel: intermediario
+    tags: [limpeza, imagem, apagar]
+    relacionados: [docker-image-prune, docker-rmi]
+
+  - id: docker-volume-prune
+    comando: docker volume prune
+    descricao: Remove volumes anônimos que nenhum container usa. Com -a, remove também os nomeados sem uso.
+    flags:
+      - flag: -a
+        descricao: Inclui volumes nomeados (Docker 23+).
+    destrutivo: true
+    aviso: Volumes guardam bancos de dados e uploads. Um volume "sem uso" pode ser o banco de um projeto que só está parado (com docker compose down). Liste antes com docker volume ls --filter dangling=true.
+    nivel: intermediario
+    tags: [limpeza, volume, apagar]
+    relacionados: [docker-volume-ls, docker-volume-rm]
+
+  - id: docker-network-prune
+    comando: docker network prune
+    descricao: Remove as redes criadas por você que nenhum container usa.
+    nivel: intermediario
+    tags: [limpeza, rede]
+    relacionados: [docker-network-rm]
+
+  - id: docker-builder-prune
+    comando: docker builder prune
+    descricao: Apaga o cache de build. Os próximos builds ficam mais lentos, mas costuma liberar muitos GB.
+    flags:
+      - flag: -a
+        descricao: Apaga todo o cache, não só o que não está em uso.
+    nivel: intermediario
+    tags: [limpeza, cache, build]
+    relacionados: [docker-build-no-cache, docker-system-df]
+
+  - id: docker-system-prune
+    comando: docker system prune
+    descricao: Limpeza geral — remove containers parados, redes sem uso, imagens dangling e cache de build. Volumes não são tocados.
+    destrutivo: true
+    aviso: Remove todos os containers parados de uma vez, junto com o que gravaram fora de volumes. Leia a lista que o comando mostra antes de confirmar.
+    nivel: intermediario
+    tags: [limpeza, espaco, apagar]
+    relacionados: [docker-system-df, docker-system-prune-a]
+
+  - id: docker-system-prune-a
+    comando: docker system prune -a --volumes
+    descricao: A limpeza mais agressiva — tudo do system prune, mais todas as imagens sem uso e os volumes anônimos.
+    destrutivo: true
+    aviso: Praticamente zera o Docker — imagens precisam ser baixadas ou reconstruídas de novo. Nunca rode em um servidor de produção sem saber exatamente o que está parado ali.
+    nivel: avancado
+    tags: [limpeza, espaco, apagar, tudo]
+    relacionados: [docker-system-prune, docker-volume-prune]

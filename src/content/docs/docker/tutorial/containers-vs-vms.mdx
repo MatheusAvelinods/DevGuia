@@ -1,0 +1,84 @@
+---
+title: 1. Containers vs VMs
+description: O problema que o Docker resolve, a diferença entre container e máquina virtual e o vocabulário básico — imagem, container e registry.
+sidebar:
+  order: 1
+---
+
+import Dica from '../../../../components/Dica.astro';
+
+**Objetivo:** entender o que é um container, por que ele não é uma máquina
+virtual e os três conceitos que sustentam todo o Docker.
+
+## O problema
+
+"Na minha máquina funciona." A aplicação depende de uma versão específica do
+Node, de uma biblioteca do sistema, de um Postgres configurado de um jeito… e
+cada máquina (a sua, a do colega, o servidor) tem um ambiente um pouco
+diferente. Instalar tudo à mão é lento e cheio de surpresas.
+
+O Docker resolve isso **empacotando a aplicação junto com tudo que ela precisa
+para rodar** e executando esse pacote de forma isolada, igual em qualquer lugar.
+
+## Container não é VM
+
+Uma **máquina virtual** simula um computador inteiro: tem o próprio sistema
+operacional completo, com kernel, rodando em cima de um _hypervisor_. Um
+**container** compartilha o kernel do sistema hospedeiro e isola só os
+processos, os arquivos e a rede.
+
+```text
+    Máquinas virtuais                 Containers
+┌──────────┐ ┌──────────┐
+│  App A   │ │  App B   │     ┌──────────┐ ┌──────────┐
+│ Bibliot. │ │ Bibliot. │     │  App A   │ │  App B   │
+│ SO conv. │ │ SO conv. │     │ Bibliot. │ │ Bibliot. │
+└──────────┘ └──────────┘     └──────────┘ └──────────┘
+┌───────────────────────┐     ┌───────────────────────┐
+│       Hypervisor      │     │     Docker Engine     │
+└───────────────────────┘     └───────────────────────┘
+┌───────────────────────┐     ┌───────────────────────┐
+│       SO do host      │     │ SO do host (um kernel)│
+└───────────────────────┘     └───────────────────────┘
+```
+
+Por isso um container:
+
+- **inicia em segundos** (ou menos), não em minutos;
+- **ocupa megabytes**, não gigabytes;
+- permite rodar dezenas na mesma máquina.
+
+Em troca, o isolamento é menor que o de uma VM — o [capítulo 8](/DevGuia/docker/tutorial/boas-praticas-e-seguranca/)
+mostra como compensar isso.
+
+<Dica titulo="E no Windows e no macOS?">
+  Containers usam recursos do kernel Linux. No Windows e no macOS, o Docker Desktop roda uma VM Linux leve por
+  baixo dos panos — você não precisa fazer nada, mas é por isso que ele consome um pouco mais de memória.
+</Dica>
+
+## O vocabulário
+
+- **Imagem** — o pacote: um "molde" somente leitura com o sistema de arquivos e
+  as instruções para iniciar a aplicação. Exemplo: `postgres:17`.
+- **Container** — uma instância em execução de uma imagem, com uma camada de
+  escrita própria. Da mesma imagem saem quantos containers você quiser.
+- **Registry** — onde as imagens ficam guardadas e são compartilhadas. O
+  [Docker Hub](https://hub.docker.com) é o padrão; o GitHub tem o `ghcr.io`.
+- **Dockerfile** — a receita, em texto, para construir uma imagem.
+
+A relação lembra programação orientada a objetos: a **imagem é a classe**, o
+**container é o objeto**.
+
+## O que pode dar errado
+
+- **Tratar o container como um servidor que dura para sempre.** Containers são
+  descartáveis: você remove e cria outro. Dados importantes ficam em volumes
+  ([capítulo 5](/DevGuia/docker/tutorial/volumes-e-persistencia/)).
+- **Achar que Docker substitui VM em tudo.** Para isolar código não confiável
+  ou rodar outro sistema operacional, a VM ainda é a ferramenta certa.
+
+## Resumo
+
+- Container = processo isolado que compartilha o kernel do host; leve e rápido.
+- Imagem (molde) → container (instância); imagens vêm de um registry.
+- Próximo passo: [instalar o Docker](/DevGuia/docker/tutorial/instalacao/).

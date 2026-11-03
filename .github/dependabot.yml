@@ -7,6 +7,11 @@ updates:
     groups:
       astro:
         patterns: ['astro', '@astrojs/*']
+    ignore:
+      # @astrojs/check e typescript-eslint ainda exigem TypeScript < 7 (peerDependencies).
+      # Remover esta regra quando eles suportarem a versão 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:

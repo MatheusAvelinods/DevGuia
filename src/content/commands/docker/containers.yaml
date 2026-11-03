@@ -1,0 +1,174 @@
+categoria: Containers
+ordem: 2
+descricao: Criar, executar, parar e remover containers.
+comandos:
+  - id: docker-run
+    comando: docker run <imagem>
+    descricao: Cria e inicia um container a partir de uma imagem (baixa a imagem se ela não existir localmente).
+    exemplo: |
+      docker run hello-world
+      docker run alpine echo "olá do container"
+    flags:
+      - flag: --name <nome>
+        descricao: Dá um nome fixo ao container (senão o Docker inventa um).
+      - flag: --rm
+        descricao: Remove o container automaticamente quando ele terminar.
+    nivel: basico
+    tags: [container, executar, run]
+    relacionados: [docker-run-d, docker-run-it, docker-ps]
+
+  - id: docker-run-d
+    comando: docker run -d -p 8080:80 --name web nginx
+    descricao: Executa em segundo plano (-d) e publica a porta 80 do container na porta 8080 da sua máquina.
+    exemplo: |
+      docker run -d -p 8080:80 --name web nginx
+      # acesse http://localhost:8080
+      docker run -d -p 127.0.0.1:5432:5432 postgres:17   # só acessível localmente
+    flags:
+      - flag: -d
+        descricao: Modo detached, libera o terminal.
+      - flag: -p <host>:<container>
+        descricao: Publica uma porta. A primeira é a da sua máquina, a segunda a do container.
+      - flag: -P
+        descricao: Publica todas as portas expostas em portas aleatórias do host.
+    nivel: basico
+    tags: [container, porta, background, run]
+    relacionados: [docker-run, docker-port, docker-logs]
+
+  - id: docker-run-it
+    comando: docker run -it --rm ubuntu bash
+    descricao: Abre um terminal interativo dentro de um container novo, que é apagado ao sair.
+    flags:
+      - flag: -i
+        descricao: Mantém a entrada padrão aberta.
+      - flag: -t
+        descricao: Aloca um terminal (TTY).
+    nivel: basico
+    tags: [container, terminal, interativo, run]
+    relacionados: [docker-exec-it, docker-run]
+
+  - id: docker-run-env
+    comando: docker run -e CHAVE=valor <imagem>
+    descricao: Passa variáveis de ambiente para o container, uma a uma ou a partir de um arquivo.
+    exemplo: |
+      docker run -d -e POSTGRES_PASSWORD=segredo postgres:17
+      docker run --env-file .env minha-app
+    flags:
+      - flag: --env-file <arquivo>
+        descricao: Lê as variáveis de um arquivo no formato CHAVE=valor.
+    nivel: basico
+    tags: [container, ambiente, variaveis, config]
+    relacionados: [docker-run, docker-inspect]
+
+  - id: docker-run-restart
+    comando: docker run -d --restart unless-stopped <imagem>
+    descricao: Define a política de reinício — o container volta sozinho se cair ou se a máquina reiniciar.
+    flags:
+      - flag: --restart no
+        descricao: Padrão, nunca reinicia.
+      - flag: --restart on-failure
+        descricao: Só reinicia se sair com erro.
+      - flag: --restart always
+        descricao: Sempre reinicia, inclusive depois de um docker stop quando o daemon reinicia.
+      - flag: --restart unless-stopped
+        descricao: Como always, mas respeita um docker stop manual.
+    nivel: intermediario
+    tags: [container, reiniciar, producao]
+    relacionados: [docker-run-d]
+
+  - id: docker-ps
+    comando: docker ps
+    descricao: Lista os containers em execução, com ID, imagem, status, portas e nome.
+    flags:
+      - flag: -q
+        descricao: Só os IDs (útil em scripts).
+      - flag: --format "table {{.Names}}\t{{.Status}}"
+        descricao: Escolhe as colunas exibidas.
+    nivel: basico
+    tags: [container, listar, status]
+    relacionados: [docker-ps-a, docker-stats]
+
+  - id: docker-ps-a
+    comando: docker ps -a
+    descricao: Lista todos os containers, inclusive os parados — e mostra o código de saída de quem terminou.
+    nivel: basico
+    tags: [container, listar, parados]
+    relacionados: [docker-ps, docker-rm, docker-container-prune]
+
+  - id: docker-stop
+    comando: docker stop <container>
+    descricao: Para o container com elegância — envia SIGTERM e, após 10 segundos, SIGKILL.
+    exemplo: |
+      docker stop web
+      docker stop $(docker ps -q)   # para todos os que estão rodando
+    flags:
+      - flag: -t <segundos>
+        descricao: Tempo de espera antes de forçar.
+    nivel: basico
+    tags: [container, parar]
+    relacionados: [docker-start, docker-kill, docker-rm]
+
+  - id: docker-start
+    comando: docker start <container>
+    descricao: Inicia de novo um container parado, com a mesma configuração e os mesmos dados.
+    flags:
+      - flag: -a
+        descricao: Conecta à saída do container (vê os logs ao vivo).
+    nivel: basico
+    tags: [container, iniciar]
+    relacionados: [docker-stop, docker-restart]
+
+  - id: docker-restart
+    comando: docker restart <container>
+    descricao: Para e inicia o container de novo (útil depois de mudar um arquivo de configuração montado).
+    nivel: basico
+    tags: [container, reiniciar]
+    relacionados: [docker-stop, docker-start]
+
+  - id: docker-kill
+    comando: docker kill <container>
+    descricao: Mata o container na hora (SIGKILL), sem dar tempo para ele encerrar sozinho.
+    nivel: intermediario
+    tags: [container, parar, forcar]
+    relacionados: [docker-stop]
+
+  - id: docker-rm
+    comando: docker rm <container>
+    descricao: Remove um container parado. A imagem continua existindo.
+    exemplo: |
+      docker rm web
+      docker rm -f web       # para e remove de uma vez
+    flags:
+      - flag: -f
+        descricao: Remove mesmo se estiver rodando.
+      - flag: -v
+        descricao: Remove também os volumes anônimos do container.
+    destrutivo: true
+    aviso: Tudo que o container gravou fora de volumes (a camada de escrita dele) é perdido. Dados que precisam sobreviver devem estar em um volume.
+    nivel: basico
+    tags: [container, remover, apagar]
+    relacionados: [docker-ps-a, docker-container-prune, docker-run-volume]
+
+  - id: docker-exec-it
+    comando: docker exec -it <container> sh
+    descricao: Abre um terminal dentro de um container que já está rodando (use bash se a imagem tiver).
+    exemplo: |
+      docker exec -it web sh
+      docker exec -it banco psql -U postgres
+      docker exec web cat /etc/nginx/nginx.conf   # um comando só, sem terminal
+    flags:
+      - flag: -u <usuario>
+        descricao: Executa como outro usuário (ex. -u root).
+    nivel: basico
+    tags: [container, terminal, executar, debug]
+    relacionados: [docker-run-it, docker-cp]
+
+  - id: docker-cp
+    comando: docker cp <container>:<caminho> <destino>
+    descricao: Copia arquivos entre o container e a sua máquina, nos dois sentidos.
+    exemplo: |
+      docker cp web:/etc/nginx/nginx.conf ./nginx.conf
+      docker cp ./index.html web:/usr/share/nginx/html/
+    nivel: intermediario
+    tags: [container, arquivos, copiar]
+    relacionados: [docker-exec-it, docker-run-bind]

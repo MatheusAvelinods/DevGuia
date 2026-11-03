@@ -1,0 +1,70 @@
+categoria: Build
+ordem: 6
+descricao: Construir imagens próprias a partir de um Dockerfile.
+comandos:
+  - id: docker-build
+    comando: docker build -t <nome>:<tag> .
+    descricao: Constrói uma imagem a partir do Dockerfile da pasta atual (o ponto é o contexto de build).
+    exemplo: |
+      docker build -t minha-app:1.0 .
+      docker build -t minha-app:1.0 -t minha-app:latest .
+    flags:
+      - flag: -t <nome:tag>
+        descricao: Nome e tag da imagem (pode repetir).
+      - flag: --progress=plain
+        descricao: Mostra a saída completa de cada etapa (ótimo para depurar).
+    nivel: basico
+    tags: [build, imagem, dockerfile]
+    relacionados: [docker-build-f, docker-tag, docker-run]
+
+  - id: docker-build-f
+    comando: docker build -f <arquivo> -t <nome> .
+    descricao: Usa um Dockerfile com outro nome ou em outra pasta.
+    exemplo: |
+      docker build -f docker/Dockerfile.dev -t minha-app:dev .
+    nivel: intermediario
+    tags: [build, dockerfile]
+    relacionados: [docker-build]
+
+  - id: docker-build-no-cache
+    comando: docker build --no-cache -t <nome> .
+    descricao: Reconstrói todas as etapas do zero, ignorando o cache (ex. para pegar atualizações de pacotes).
+    flags:
+      - flag: --pull
+        descricao: Baixa de novo a imagem base, mesmo que exista localmente.
+    nivel: intermediario
+    tags: [build, cache]
+    relacionados: [docker-build, docker-builder-prune]
+
+  - id: docker-build-arg
+    comando: docker build --build-arg VERSAO=22 -t <nome> .
+    descricao: Passa um valor para uma instrução ARG do Dockerfile durante o build.
+    exemplo: |
+      # Dockerfile:
+      #   ARG VERSAO=20
+      #   FROM node:${VERSAO}-alpine
+      docker build --build-arg VERSAO=22 -t minha-app .
+    nivel: intermediario
+    tags: [build, argumento, variavel]
+    relacionados: [docker-build]
+
+  - id: docker-build-target
+    comando: docker build --target <etapa> -t <nome> .
+    descricao: Em um Dockerfile multi-stage, constrói só até a etapa indicada (ex. a de testes ou de desenvolvimento).
+    nivel: avancado
+    tags: [build, multi-stage]
+    relacionados: [docker-build]
+
+  - id: docker-buildx-platform
+    comando: docker buildx build --platform linux/amd64,linux/arm64 -t <nome> --push .
+    descricao: Constrói a imagem para várias arquiteturas (Intel e ARM) e envia todas ao registry com o mesmo nome.
+    nivel: avancado
+    tags: [build, multi-arquitetura, arm, buildx]
+    relacionados: [docker-push, docker-build]
+
+  - id: docker-init
+    comando: docker init
+    descricao: Gera um Dockerfile, um compose.yaml e um .dockerignore iniciais, perguntando a linguagem do projeto. Vem com o Docker Desktop (não existe no Docker Engine puro).
+    nivel: basico
+    tags: [build, dockerfile, compose, iniciar]
+    relacionados: [docker-build, docker-compose-up]

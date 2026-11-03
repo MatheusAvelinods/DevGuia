@@ -1,0 +1,115 @@
+---
+title: 2. Instalação
+description: Como instalar o Docker Desktop no Windows e no macOS e o Docker Engine no Linux, e verificar se está tudo funcionando.
+sidebar:
+  order: 2
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** ter o Docker instalado e rodar o primeiro container de teste.
+
+## Conceito
+
+O Docker tem duas partes:
+
+- o **daemon** (`dockerd`), um serviço em segundo plano que realmente cria e
+  gerencia containers;
+- o **cliente** (`docker`), o comando que você digita e que conversa com o
+  daemon.
+
+O **Docker Desktop** (Windows e macOS) instala as duas coisas, mais a VM Linux,
+o Compose e uma interface gráfica. No Linux, o **Docker Engine** roda direto no
+sistema.
+
+## Passo a passo
+
+<Tabs syncKey="so">
+  <TabItem label="Windows">
+    <Steps>
+
+    1. Ative o WSL 2 (PowerShell como administrador) e reinicie:
+
+       ```powershell
+       wsl --install
+       ```
+
+    2. Baixe e instale o [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/),
+       mantendo a opção **Use WSL 2** marcada.
+
+    3. Abra o Docker Desktop e espere o ícone da baleia indicar que está rodando.
+
+    </Steps>
+
+  </TabItem>
+  <TabItem label="macOS">
+    Baixe o [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/)
+    escolhendo **Apple Silicon** ou **Intel** conforme o seu Mac, ou use o
+    Homebrew:
+
+    ```bash
+    brew install --cask docker
+    ```
+
+    Abra o Docker pelo Launchpad uma vez para ele terminar a configuração.
+
+  </TabItem>
+  <TabItem label="Linux">
+    O jeito mais rápido é o script oficial (Ubuntu, Debian, Fedora e outros):
+
+    ```bash
+    curl -fsSL https://get.docker.com | sh
+    ```
+
+    Para usar `docker` sem `sudo`, adicione seu usuário ao grupo `docker` e
+    entre de novo na sessão:
+
+    ```bash
+    sudo usermod -aG docker $USER
+    newgrp docker
+    ```
+
+  </TabItem>
+</Tabs>
+
+<Aviso titulo="O grupo docker equivale a root">
+  Quem está no grupo `docker` consegue, na prática, obter acesso de administrador à máquina. Em servidores
+  compartilhados, adicione só quem realmente precisa.
+</Aviso>
+
+### Verifique a instalação
+
+```bash
+docker version          # mostra Client e Server — se Server falhar, o daemon não está rodando
+docker compose version
+```
+
+E rode o container de teste:
+
+<ComandoRef id="docker-run" />
+
+Se aparecer a mensagem _"Hello from Docker!"_, está tudo certo.
+
+## O que pode dar errado
+
+- **`Cannot connect to the Docker daemon`.** O daemon não está rodando. No
+  Windows/macOS, abra o Docker Desktop; no Linux, `sudo systemctl start docker`.
+- **`permission denied while trying to connect to the Docker daemon socket`.**
+  No Linux, seu usuário não está no grupo `docker` (ou você não abriu uma nova
+  sessão depois de adicioná-lo).
+- **Docker Desktop lento ou consumindo muita memória.** Ajuste os limites em
+  _Settings → Resources_ (no Windows, pelo arquivo `.wslconfig`).
+
+<Dica titulo="docker-compose ou docker compose?">
+  O Compose agora é um plugin do próprio Docker: escreva `docker compose` (com espaço). O antigo
+  `docker-compose` (com hífen) foi descontinuado.
+</Dica>
+
+## Resumo
+
+- Windows/macOS: Docker Desktop. Linux: Docker Engine.
+- `docker version` precisa mostrar **Client** e **Server**.
+- Próximo passo: [o primeiro container de verdade](/DevGuia/docker/tutorial/primeiro-container/).

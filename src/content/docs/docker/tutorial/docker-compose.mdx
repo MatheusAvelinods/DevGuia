@@ -1,0 +1,120 @@
+---
+title: 7. Docker Compose
+description: Descreva uma aplicação com banco de dados em um compose.yaml e gerencie tudo com docker compose up, logs, exec e down.
+sidebar:
+  order: 7
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** trocar uma sequência de `docker run` com dezenas de flags por um
+arquivo versionado e um único comando.
+
+## Conceito
+
+O **Docker Compose** lê um arquivo `compose.yaml` que descreve os
+**serviços** (containers), **volumes** e **redes** de um projeto. Com ele:
+
+- a configuração fica no repositório, revisável em PR;
+- uma rede é criada automaticamente e cada serviço é acessível **pelo nome do
+  serviço**;
+- `docker compose up` sobe tudo na ordem certa; `down` derruba tudo.
+
+## Passo a passo
+
+Vamos juntar a API do [capítulo 4](/DevGuia/docker/tutorial/imagens-e-dockerfile/)
+com um Postgres.
+
+<Steps>
+
+1. Crie o `compose.yaml` na raiz do projeto:
+
+   ```yaml title="compose.yaml"
+   services:
+     api:
+       build: . # usa o Dockerfile da pasta
+       ports:
+         - '3000:3000'
+       environment:
+         DATABASE_URL: postgres://postgres:${DB_SENHA}@banco:5432/postgres
+       depends_on:
+         banco:
+           condition: service_healthy # espera o banco ficar pronto
+       restart: unless-stopped
+
+     banco:
+       image: postgres:17
+       environment:
+         POSTGRES_PASSWORD: ${DB_SENHA}
+       volumes:
+         - dados-pg:/var/lib/postgresql/data
+       healthcheck:
+         test: ['CMD-SHELL', 'pg_isready -U postgres']
+         interval: 5s
+         retries: 5
+
+   volumes:
+     dados-pg:
+   ```
+
+2. Coloque os segredos num `.env` ao lado (e no `.gitignore`!):
+
+   ```text title=".env"
+   DB_SENHA=troque-esta-senha
+   ```
+
+3. Confira se o arquivo está válido e como ficou com as variáveis:
+
+   <ComandoRef id="docker-compose-config" />
+
+4. Suba tudo:
+
+   <ComandoRef id="docker-compose-up" />
+
+5. Acompanhe e investigue:
+
+   <ComandoRef id="docker-compose-ps" />
+   <ComandoRef id="docker-compose-logs" />
+   <ComandoRef id="docker-compose-exec" />
+
+6. Mudou o código? Reconstrua e suba de novo — só o que mudou é recriado:
+
+   <ComandoRef id="docker-compose-up-build" />
+
+7. Terminou? Derrube tudo (o volume com os dados fica):
+
+   <ComandoRef id="docker-compose-down" />
+
+</Steps>
+
+<Dica titulo="Tarefas avulsas">
+  Para migrações, seeds ou testes, use `docker compose run --rm api npm run migrate`: cria um container
+  temporário com a mesma configuração do serviço.
+</Dica>
+
+## O que pode dar errado
+
+- **A API sobe antes do banco e quebra.** `depends_on` sozinho só garante a
+  ordem de **início**, não que o banco esteja **pronto**. Use `healthcheck` +
+  `condition: service_healthy`, como no exemplo.
+- **Mudei o `compose.yaml` e nada aconteceu.** `restart` não relê o arquivo.
+  Rode `docker compose up -d` de novo — ele recria só o que mudou.
+- **Mudei o código e a imagem continua velha.** Faltou `--build`.
+- **Variável aparece vazia.** O `.env` precisa estar na mesma pasta do
+  `compose.yaml` (ou onde você roda o comando). `docker compose config` mostra
+  o valor final.
+
+<Aviso destrutivo titulo="down -v apaga o banco">
+  `docker compose down -v` remove também os volumes do projeto. Em desenvolvimento é uma forma rápida de
+  recomeçar; com dados que importam, é um desastre.
+</Aviso>
+
+## Resumo
+
+- `compose.yaml` descreve serviços, volumes e redes; vai para o repositório.
+- Serviços se encontram pelo nome (`banco:5432`).
+- `up -d` sobe, `logs -f` acompanha, `exec` entra, `down` derruba.
+- Mais em [referência: Compose](/DevGuia/docker/referencia/#compose).

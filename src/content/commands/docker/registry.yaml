@@ -1,0 +1,51 @@
+categoria: Registry
+ordem: 9
+descricao: Publicar e baixar imagens do Docker Hub, GitHub e outros registries.
+comandos:
+  - id: docker-login
+    comando: docker login
+    descricao: Autentica no Docker Hub (ou em outro registry, informando o endereço). Prefira um token de acesso à senha.
+    exemplo: |
+      docker login                       # Docker Hub
+      docker login registry.exemplo.com
+    nivel: basico
+    tags: [registry, login, autenticacao]
+    relacionados: [docker-login-ghcr, docker-push, docker-logout]
+
+  - id: docker-login-ghcr
+    comando: echo $GITHUB_TOKEN | docker login ghcr.io -u <usuario> --password-stdin
+    descricao: Autentica no GitHub Container Registry com um token, sem deixar a senha no histórico do terminal.
+    nivel: intermediario
+    tags: [registry, login, github, ghcr]
+    relacionados: [docker-login, docker-push]
+
+  - id: docker-logout
+    comando: docker logout
+    descricao: Remove as credenciais salvas do registry.
+    nivel: basico
+    tags: [registry, logout]
+    relacionados: [docker-login]
+
+  - id: docker-push
+    comando: docker push <usuario>/<imagem>:<tag>
+    descricao: Envia a imagem para o registry. O nome precisa incluir seu usuário ou o endereço do registry (use docker tag antes).
+    exemplo: |
+      docker tag minha-app:1.0 usuario/minha-app:1.0
+      docker push usuario/minha-app:1.0
+    nivel: basico
+    tags: [registry, enviar, publicar]
+    relacionados: [docker-tag, docker-login, docker-push-all-tags]
+
+  - id: docker-push-all-tags
+    comando: docker push --all-tags <usuario>/<imagem>
+    descricao: Envia de uma vez todas as tags locais de uma imagem (por exemplo, 1.0 e latest).
+    nivel: intermediario
+    tags: [registry, enviar, tag]
+    relacionados: [docker-push]
+
+  - id: docker-manifest-inspect
+    comando: docker manifest inspect <imagem>:<tag>
+    descricao: Consulta no registry, sem baixar a imagem, quais arquiteturas e camadas ela tem.
+    nivel: avancado
+    tags: [registry, arquitetura, inspecao]
+    relacionados: [docker-buildx-platform, docker-pull]

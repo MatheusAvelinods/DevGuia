@@ -1,0 +1,139 @@
+---
+title: 4. Imagens e Dockerfile
+description: Entenda camadas e cache de imagens e escreva um Dockerfile para empacotar sua própria aplicação Node.js.
+sidebar:
+  order: 4
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** escrever um Dockerfile, construir a imagem da sua aplicação e
+entender por que a ordem das instruções importa.
+
+## Conceito
+
+Uma imagem é feita de **camadas** empilhadas. Cada instrução do Dockerfile que
+mexe em arquivos (`COPY`, `RUN`…) cria uma camada nova por cima da anterior.
+
+Na hora do build, o Docker **reaproveita do cache** toda camada cuja instrução
+e arquivos de entrada não mudaram. Assim que uma camada muda, **todas as
+seguintes** são refeitas. Daí a regra de ouro:
+
+> Coloque primeiro o que muda pouco (dependências) e por último o que muda
+> sempre (seu código).
+
+O nome de uma imagem segue o formato `registry/usuario/nome:tag` — por exemplo,
+`ghcr.io/usuario/app:1.2.0`. Sem registry, é o Docker Hub; sem tag, é `latest`.
+
+## Passo a passo
+
+Vamos empacotar uma API Node.js mínima. Na pasta do projeto:
+
+```js title="server.js"
+const http = require('node:http');
+http
+  .createServer((req, res) => res.end('Olá do container!\n'))
+  .listen(3000, () => console.log('Ouvindo na porta 3000'));
+```
+
+```json title="package.json"
+{ "name": "api", "version": "1.0.0", "scripts": { "start": "node server.js" } }
+```
+
+Rode `npm install` uma vez para gerar o `package-lock.json` — o `npm ci` usado
+no Dockerfile exige esse arquivo para instalar exatamente as mesmas versões.
+
+<Steps>
+
+1. Crie o `Dockerfile`:
+
+   ```dockerfile title="Dockerfile"
+   # 1. imagem base: Node 22 sobre Alpine Linux (pequena)
+   FROM node:22-alpine
+
+   # 2. pasta de trabalho dentro da imagem
+   WORKDIR /app
+
+   # 3. dependências primeiro — esta camada fica em cache
+   #    enquanto package*.json não mudar
+   COPY package*.json ./
+   RUN npm ci --omit=dev
+
+   # 4. depois o código, que muda o tempo todo
+   COPY . .
+
+   # 5. documentação da porta e comando de início
+   EXPOSE 3000
+   CMD ["node", "server.js"]
+   ```
+
+2. Crie um `.dockerignore` para não mandar lixo ao build:
+
+   ```text title=".dockerignore"
+   node_modules
+   .git
+   .env
+   *.log
+   ```
+
+3. Construa a imagem:
+
+   <ComandoRef id="docker-build" />
+
+4. Rode e teste:
+
+   ```bash
+   docker run -d -p 3000:3000 --name api minha-app:1.0
+   curl http://localhost:3000
+   ```
+
+5. Mude o `server.js` e construa de novo: repare que as etapas de dependências
+   aparecem como `CACHED` e o build termina em segundos.
+
+</Steps>
+
+### As instruções mais usadas
+
+| Instrução    | Para que serve                                                   |
+| ------------ | ---------------------------------------------------------------- |
+| `FROM`       | imagem base (sempre a primeira)                                  |
+| `WORKDIR`    | define (e cria) a pasta de trabalho                              |
+| `COPY`       | copia arquivos do contexto de build para a imagem                |
+| `RUN`        | executa um comando **durante o build** (instalar pacotes)        |
+| `ENV`        | define variável de ambiente                                      |
+| `ARG`        | variável só do build (`--build-arg`)                             |
+| `EXPOSE`     | documenta a porta (não publica nada sozinho)                     |
+| `USER`       | troca o usuário das instruções seguintes e do container          |
+| `CMD`        | comando padrão **ao iniciar** o container (pode ser substituído) |
+| `ENTRYPOINT` | executável fixo; o `CMD` vira argumento dele                     |
+
+<Dica titulo="Para ver as camadas">
+  `docker history minha-app:1.0` mostra cada camada e quanto ela pesa — ótimo para descobrir o que está
+  deixando a imagem grande.
+</Dica>
+
+## O que pode dar errado
+
+- **Todo build reinstala as dependências.** O `COPY . .` está antes do
+  `npm ci`, então qualquer mudança no código invalida o cache. Siga a ordem do
+  exemplo.
+- **Build lento e imagem enorme.** Falta `.dockerignore`, e a `node_modules` ou
+  a pasta `.git` estão indo para o contexto de build.
+- **`RUN` vs `CMD`.** `RUN npm start` no Dockerfile roda (e trava) o build. O
+  comando de início vai em `CMD`.
+
+<Aviso>
+  Nunca coloque senhas ou tokens em `ENV`, `ARG` ou arquivos copiados: qualquer pessoa com a imagem consegue
+  lê-los, mesmo que você apague em uma camada posterior. Passe segredos na execução (`-e` ou `--env-file`).
+</Aviso>
+
+## Resumo
+
+- Imagem = camadas; o cache é reaproveitado até a primeira camada que mudou.
+- Dependências antes do código; `.dockerignore` sempre.
+- `docker build -t nome:tag .` constrói; `docker run` executa.
+- Mais em [referência: Build](/DevGuia/docker/referencia/#build) e
+  [Imagens](/DevGuia/docker/referencia/#imagens).

@@ -1,0 +1,61 @@
+categoria: Redes
+ordem: 5
+descricao: Fazer containers conversarem entre si.
+comandos:
+  - id: docker-network-ls
+    comando: docker network ls
+    descricao: Lista as redes. Toda instalação já vem com bridge, host e none.
+    nivel: basico
+    tags: [rede, listar]
+    relacionados: [docker-network-create, docker-network-inspect]
+
+  - id: docker-network-create
+    comando: docker network create <nome>
+    descricao: Cria uma rede bridge própria. Nela, os containers se encontram pelo nome (DNS interno), o que não acontece na rede bridge padrão.
+    exemplo: |
+      docker network create minha-rede
+      docker run -d --name banco --network minha-rede -e POSTGRES_PASSWORD=segredo postgres:17
+      docker run -d --name app --network minha-rede -e DB_HOST=banco minha-app
+    nivel: basico
+    tags: [rede, criar, dns]
+    relacionados: [docker-run-network, docker-network-connect]
+
+  - id: docker-run-network
+    comando: docker run --network <rede> <imagem>
+    descricao: Inicia o container já conectado a uma rede.
+    flags:
+      - flag: --network host
+        descricao: Usa a rede da própria máquina, sem isolamento nem -p (completo no Linux; limitado no Docker Desktop).
+      - flag: --network none
+        descricao: Sem rede nenhuma.
+    nivel: intermediario
+    tags: [rede, run]
+    relacionados: [docker-network-create]
+
+  - id: docker-network-inspect
+    comando: docker network inspect <rede>
+    descricao: Mostra a sub-rede e quais containers estão conectados, com seus IPs.
+    nivel: intermediario
+    tags: [rede, inspecao, ip]
+    relacionados: [docker-network-ls, docker-inspect]
+
+  - id: docker-network-connect
+    comando: docker network connect <rede> <container>
+    descricao: Conecta um container que já está rodando a mais uma rede.
+    nivel: intermediario
+    tags: [rede, conectar]
+    relacionados: [docker-network-disconnect]
+
+  - id: docker-network-disconnect
+    comando: docker network disconnect <rede> <container>
+    descricao: Desconecta um container de uma rede.
+    nivel: intermediario
+    tags: [rede, desconectar]
+    relacionados: [docker-network-connect]
+
+  - id: docker-network-rm
+    comando: docker network rm <rede>
+    descricao: Remove uma rede que nenhum container esteja usando.
+    nivel: intermediario
+    tags: [rede, remover]
+    relacionados: [docker-network-prune]

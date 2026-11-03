@@ -49,6 +49,9 @@ describe('páginas principais', () => {
     ['git/tutorial/', 'Tutorial de Git'],
     ['git/tutorial/desfazendo-coisas/', '6. Desfazendo coisas'],
     ['git/referencia/', 'Referência de Git'],
+    ['docker/tutorial/', 'Tutorial de Docker'],
+    ['docker/tutorial/docker-compose/', '7. Docker Compose'],
+    ['docker/referencia/', 'Referência de Docker'],
   ])('/%s abre com o título "%s"', async (caminho, titulo) => {
     const resp = await page.goto(servidor.url + caminho);
     expect(resp?.status()).toBe(200);
@@ -77,17 +80,20 @@ describe('páginas principais', () => {
   });
 });
 
-describe('busca (gate da Fase 1: encontra qualquer comando Git)', async () => {
-  const comandos = (await carregarCategorias('src/content/commands'))
-    .filter((c) => c.tecnologia === 'git')
-    .flatMap((c) => c.comandos);
+describe('busca: encontra qualquer comando e leva à âncora dele na referência', async () => {
+  const comandos = (await carregarCategorias('src/content/commands')).flatMap((cat) =>
+    cat.comandos.map((c) => ({ tecnologia: cat.tecnologia, id: c.id, comando: c.comando })),
+  );
 
-  it.each(comandos.map((c) => [c.id, c.comando] as const))('%s', async (id, comando) => {
+  beforeAll(async () => {
     await page.goto(servidor.url);
+  });
+
+  it.each(comandos.map((c) => [c.id, c] as const))('%s', async (_, { tecnologia, id, comando }) => {
     const resultados = await buscar(comando);
     const subResultados = resultados.flatMap((r) => r.sub);
     expect(
-      subResultados.some((u) => u.endsWith(`/git/referencia/#${id}`)),
+      subResultados.some((u) => u.endsWith(`/${tecnologia}/referencia/#${id}`)),
       subResultados.join('\n'),
     ).toBe(true);
   });

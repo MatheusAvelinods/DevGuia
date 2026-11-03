@@ -1,0 +1,91 @@
+categoria: Imagens
+ordem: 1
+descricao: Baixar, listar, etiquetar e remover imagens — os "moldes" dos containers.
+comandos:
+  - id: docker-pull
+    comando: docker pull <imagem>:<tag>
+    descricao: Baixa uma imagem do registry (Docker Hub por padrão). Sem tag, baixa a latest.
+    exemplo: |
+      docker pull nginx:1.27-alpine
+      docker pull postgres:17
+      docker pull ghcr.io/usuario/app:1.0
+    flags:
+      - flag: --platform linux/amd64
+        descricao: Força a arquitetura (útil em Macs com Apple Silicon).
+    nivel: basico
+    tags: [imagem, baixar, pull]
+    relacionados: [docker-images, docker-search]
+
+  - id: docker-images
+    comando: docker images
+    descricao: Lista as imagens baixadas ou construídas na máquina, com tag, ID e tamanho.
+    exemplo: |
+      docker images
+      docker image ls nginx            # só imagens "nginx"
+      docker images --filter dangling=true
+    flags:
+      - flag: -a
+        descricao: Inclui camadas intermediárias.
+      - flag: --filter dangling=true
+        descricao: Só imagens sem tag (<none>), sobras de builds antigos.
+    nivel: basico
+    tags: [imagem, listar]
+    relacionados: [docker-pull, docker-rmi, docker-image-prune]
+
+  - id: docker-search
+    comando: docker search <termo>
+    descricao: Procura imagens no Docker Hub pelo nome. Prefira imagens marcadas como oficiais.
+    exemplo: |
+      docker search redis --filter is-official=true
+    nivel: basico
+    tags: [imagem, buscar, docker-hub]
+    relacionados: [docker-pull]
+
+  - id: docker-tag
+    comando: docker tag <imagem> <novo-nome>:<tag>
+    descricao: Cria um novo nome (tag) apontando para a mesma imagem — necessário antes de enviar a um registry.
+    exemplo: |
+      docker tag minha-app:latest usuario/minha-app:1.0
+      docker tag minha-app:latest ghcr.io/usuario/minha-app:1.0
+    nivel: basico
+    tags: [imagem, tag, versao]
+    relacionados: [docker-push, docker-build]
+
+  - id: docker-image-history
+    comando: docker history <imagem>
+    descricao: Mostra as camadas da imagem e o tamanho que cada instrução do Dockerfile adicionou.
+    flags:
+      - flag: --no-trunc
+        descricao: Mostra as instruções completas.
+    nivel: intermediario
+    tags: [imagem, camadas, tamanho, inspecao]
+    relacionados: [docker-inspect, docker-build]
+
+  - id: docker-rmi
+    comando: docker rmi <imagem>
+    descricao: Remove uma imagem local. O Docker recusa se algum container (mesmo parado) ainda a usa.
+    exemplo: |
+      docker rmi nginx:1.27-alpine
+      docker image rm minha-app:dev
+    flags:
+      - flag: -f
+        descricao: Força a remoção mesmo com containers parados usando a imagem.
+    destrutivo: true
+    aviso: Imagens do Docker Hub podem ser baixadas de novo, mas uma imagem que você construiu e não enviou a nenhum registry some de vez — só reconstruindo a partir do Dockerfile.
+    nivel: basico
+    tags: [imagem, remover, apagar]
+    relacionados: [docker-images, docker-image-prune, docker-image-prune-a]
+
+  - id: docker-save
+    comando: docker save -o imagem.tar <imagem>
+    descricao: Exporta uma imagem (com todas as camadas) para um arquivo .tar, para levar a uma máquina sem acesso ao registry.
+    nivel: intermediario
+    tags: [imagem, exportar, offline]
+    relacionados: [docker-load]
+
+  - id: docker-load
+    comando: docker load -i imagem.tar
+    descricao: Importa uma imagem a partir de um arquivo .tar gerado com docker save.
+    nivel: intermediario
+    tags: [imagem, importar, offline]
+    relacionados: [docker-save]

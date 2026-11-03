@@ -1,0 +1,149 @@
+---
+title: 8. Boas práticas e segurança
+description: Imagens menores e mais seguras com multi-stage build, imagens slim, usuário não-root, segredos fora da imagem e limpeza de disco.
+sidebar:
+  order: 8
+---
+
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** produzir imagens pequenas, rápidas de baixar e com menos
+superfície de ataque — e manter o disco sob controle.
+
+## Conceito
+
+Cada pacote dentro da imagem é peso a mais para baixar e uma possível
+vulnerabilidade a mais. E, por padrão, o processo dentro do container roda como
+**root**: se a aplicação for invadida, o atacante já começa com o máximo de
+permissões dentro do container. As práticas abaixo atacam esses dois pontos.
+
+## As práticas
+
+### 1. Escolha uma imagem base enxuta e com versão fixa
+
+| Base             | Tamanho em disco | Observação                                  |
+| ---------------- | ---------------- | ------------------------------------------- |
+| `node:22`        | ~1,6 GB          | Debian completo, com compiladores           |
+| `node:22-slim`   | ~330 MB          | Debian mínimo — boa escolha padrão          |
+| `node:22-alpine` | ~240 MB          | musl em vez de glibc; às vezes incompatível |
+| _distroless_     | menor ainda      | sem shell nem gerenciador de pacotes        |
+
+Os valores são aproximados (medidos com `docker images`) e mudam a cada versão;
+o que importa é a proporção: a imagem completa é cerca de cinco vezes maior.
+
+Fixe a versão (`node:22.11-slim`), nunca `latest`: assim o build de hoje e o de
+daqui a seis meses usam a mesma base.
+
+### 2. Multi-stage build
+
+Use uma etapa com todas as ferramentas para **compilar** e copie só o resultado
+para uma etapa final mínima:
+
+```dockerfile title="Dockerfile"
+# etapa 1: build (tem devDependencies, TypeScript etc.)
+FROM node:22-slim AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# etapa 2: imagem final, só com o necessário para rodar
+FROM node:22-slim
+ENV NODE_ENV=production
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=build /app/dist ./dist
+
+# 3. usuário sem privilégios (a imagem node já tem o usuário "node")
+USER node
+
+EXPOSE 3000
+CMD ["node", "dist/server.js"]
+```
+
+A imagem final não leva compiladores, código-fonte TypeScript nem
+`devDependencies`. Para gerar só a primeira etapa (por exemplo, para rodar
+testes no CI):
+
+<ComandoRef id="docker-build-target" />
+
+### 3. Rode como usuário não-root
+
+A instrução `USER` faz o container rodar sem privilégios. Se a imagem base não
+tiver um usuário pronto, crie um:
+
+```dockerfile
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+```
+
+Ao executar, dá para endurecer ainda mais:
+
+```bash
+docker run --read-only --cap-drop ALL --security-opt no-new-privileges minha-app
+```
+
+### 4. Segredos fora da imagem
+
+- Nada de senhas em `ENV`, `ARG` ou arquivos copiados — ficam gravados nas
+  camadas.
+- Passe na execução: `--env-file`, variáveis do Compose ou o gerenciador de
+  segredos da sua plataforma.
+- Para segredos necessários **durante o build** (como um token de pacote
+  privado), use `RUN --mount=type=secret`.
+
+### 5. Procure vulnerabilidades
+
+O Docker Scout analisa as bibliotecas da imagem e lista CVEs conhecidas:
+
+```bash
+docker scout quickview minha-app:1.0
+docker scout cves minha-app:1.0
+```
+
+### 6. Mantenha o disco limpo
+
+Imagens antigas e cache de build acumulam dezenas de GB. Veja primeiro onde
+está o espaço:
+
+<ComandoRef id="docker-system-df" />
+
+E limpe com o comando adequado — do mais seguro ao mais agressivo:
+
+<ComandoRef id="docker-image-prune" />
+<ComandoRef id="docker-builder-prune" />
+<ComandoRef id="docker-system-prune" />
+
+<Aviso destrutivo titulo="prune não tem desfazer">
+  Antes de qualquer `prune`, leia a lista que o comando mostra. Um container "parado" pode ser o banco de um
+  projeto que você só desligou. E nunca rode `docker system prune -a --volumes` num servidor sem saber o que
+  tem nele.
+</Aviso>
+
+## O que pode dar errado
+
+- **`permission denied` depois de adicionar `USER`.** A pasta foi copiada como
+  root. Use `COPY --chown=node:node . .` ou ajuste com `RUN chown` antes do
+  `USER`.
+- **App quebra na Alpine.** Algumas bibliotecas nativas esperam glibc. Troque
+  para `-slim`.
+- **A imagem continua grande.** Rode `docker history` para achar a camada
+  pesada — geralmente cache de gerenciador de pacotes ou `node_modules` de
+  desenvolvimento.
+
+<Dica titulo="Checklist rápido">
+  Base `-slim` com versão fixa · multi-stage · `.dockerignore` · `USER` não-root · nenhum segredo na imagem ·
+  `docker scout` antes de publicar.
+</Dica>
+
+## Resumo
+
+- Imagens pequenas = menos download e menos vulnerabilidades.
+- Multi-stage separa ferramentas de build do que vai para produção.
+- Rode como não-root e mantenha segredos fora das camadas.
+- Parabéns, você terminou o tutorial! Guarde a [referência de Docker](/DevGuia/docker/referencia/)
+  para consultas rápidas.
