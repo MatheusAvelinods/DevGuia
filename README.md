@@ -47,7 +47,7 @@ docs/PRD.md          documento de requisitos
 
 - [x] **Fase 0 · Fundação** — Astro + Starlight, CI e deploy no Pages
 - [x] **Fase 1 · Git** — schema de comandos, componentes, tutorial (8 capítulos) e 74 comandos
-- [ ] **Fase 2 · Docker** — tutorial e 60+ comandos
+- [x] **Fase 2 · Docker** — tutorial (8 capítulos) e 76 comandos
 - [ ] **Fase 3 · Cheat sheet** — página única + downloads em PDF, Markdown e HTML
 - [ ] **Fase 4 · Pós-MVP** — receitas, snippets de configuração, novas trilhas
 

@@ -17,7 +17,7 @@
     "check:links": "node scripts/checar-links.mjs dist /DevGuia",
     "astro": "astro",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "count": "node scripts/contar-comandos.mjs --min git=60",
+    "count": "node scripts/contar-comandos.mjs --min git=60 --min docker=60",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write ."
   },
