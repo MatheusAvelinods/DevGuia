@@ -1,0 +1,126 @@
+---
+title: 5. Volumes e persistência
+description: Por que dados somem quando o container é removido e como guardá-los com volumes nomeados e bind mounts, incluindo backup.
+sidebar:
+  order: 5
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+import Aviso from '../../../../components/Aviso.astro';
+
+**Objetivo:** fazer um banco de dados sobreviver à remoção do container e saber
+quando usar volume nomeado ou bind mount.
+
+## Conceito
+
+Tudo que um container grava vai para a **camada de escrita** dele, que é
+apagada junto com o container no `docker rm`. Para guardar dados de verdade,
+você monta um armazenamento externo em uma pasta do container:
+
+| Tipo               | Sintaxe               | Onde ficam os dados         | Use para                                 |
+| ------------------ | --------------------- | --------------------------- | ---------------------------------------- |
+| **Volume nomeado** | `-v dados:/caminho`   | área gerenciada pelo Docker | bancos de dados, uploads, produção       |
+| **Bind mount**     | `-v ./pasta:/caminho` | uma pasta sua, no host      | código-fonte em desenvolvimento, configs |
+| **tmpfs**          | `--tmpfs /caminho`    | memória RAM                 | arquivos temporários                     |
+
+Regra prática: **volume para dados, bind mount para código**.
+
+## Passo a passo
+
+### Banco de dados com volume nomeado
+
+<Steps>
+
+1. Suba um Postgres guardando os dados num volume chamado `dados-pg`:
+
+   ```bash
+   docker run -d --name banco \
+     -e POSTGRES_PASSWORD=segredo \
+     -v dados-pg:/var/lib/postgresql/data \
+     postgres:17
+   ```
+
+   O `-v dados-pg:/var/lib/postgresql/data` é a parte importante: monta o volume
+   na pasta onde o Postgres guarda os dados.
+
+   <ComandoRef id="docker-run-volume" />
+
+2. Crie uma tabela:
+
+   ```bash
+   docker exec -it banco psql -U postgres -c "CREATE TABLE teste (id int); INSERT INTO teste VALUES (1);"
+   ```
+
+3. Agora remova o container — sem dó:
+
+   ```bash
+   docker rm -f banco
+   ```
+
+4. Suba outro container com o mesmo volume (repita o comando do passo 1) e
+   consulte:
+
+   ```bash
+   docker exec -it banco psql -U postgres -c "SELECT * FROM teste;"
+   ```
+
+   O dado está lá: ele vive no volume, não no container.
+
+</Steps>
+
+<ComandoRef id="docker-volume-ls" />
+
+### Código com bind mount
+
+Durante o desenvolvimento, monte a pasta do projeto para que as mudanças
+apareçam no container na hora, sem rebuild:
+
+<ComandoRef id="docker-run-bind" />
+
+### Backup de um volume
+
+Não existe um comando de backup pronto, mas um container descartável resolve:
+ele monta o volume e a pasta atual e compacta um no outro.
+
+```bash
+# backup: volume dados-pg → ./backup-pg.tar.gz
+docker run --rm -v dados-pg:/dados -v "$(pwd)":/backup alpine \
+  tar czf /backup/backup-pg.tar.gz -C /dados .
+
+# restaurar em um volume (novo ou vazio)
+docker run --rm -v dados-pg:/dados -v "$(pwd)":/backup alpine \
+  tar xzf /backup/backup-pg.tar.gz -C /dados
+```
+
+<Dica titulo="Banco de dados: prefira a ferramenta do banco">
+  Copiar os arquivos com o banco rodando pode gerar um backup inconsistente.
+  Para bancos, pare o container antes ou use a ferramenta própria, como
+  `docker exec banco pg_dump -U postgres > backup.sql`.
+</Dica>
+
+## O que pode dar errado
+
+- **Os dados sumiram depois de recriar o container.** O volume não foi montado
+  no caminho certo. Cada imagem documenta onde guarda os dados (no Postgres,
+  `/var/lib/postgresql/data`). Confira com `docker inspect` na seção `Mounts`.
+- **`permission denied` em bind mount (Linux).** O usuário do container tem um
+  UID diferente do dono da pasta no host. Ajuste o dono da pasta ou rode com
+  `--user "$(id -u):$(id -g)"`.
+- **Bind mount lento no Windows/macOS.** Pastas do host passam pela VM. No
+  Windows, deixe o projeto dentro do WSL (`\\wsl$\...`), não em `C:\`.
+
+<Aviso destrutivo titulo="Cuidado ao limpar volumes">
+  `docker volume rm`, `docker volume prune` e `docker compose down -v` apagam dados sem pedir confirmação
+  extra e sem lixeira. Faça backup antes.
+</Aviso>
+
+<ComandoRef id="docker-volume-rm" />
+
+## Resumo
+
+- A camada de escrita morre com o container; volumes sobrevivem.
+- Volume nomeado para dados, bind mount para código em desenvolvimento.
+- Backup = container descartável com `tar`, ou a ferramenta do próprio banco.
+- Mais em [referência: Volumes](/DevGuia/docker/referencia/#volumes).

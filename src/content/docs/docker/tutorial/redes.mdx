@@ -1,0 +1,101 @@
+---
+title: 6. Redes
+description: Entenda as redes do Docker, a diferença entre publicar portas e conectar containers e como um container encontra o outro pelo nome.
+sidebar:
+  order: 6
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import ComandoRef from '../../../../components/ComandoRef.astro';
+import Dica from '../../../../components/Dica.astro';
+
+**Objetivo:** fazer uma aplicação falar com um banco de dados em outro container
+e entender quando publicar portas.
+
+## Conceito
+
+São dois problemas diferentes:
+
+- **Do seu computador para o container** → publicar porta com `-p`.
+- **De um container para outro** → colocar os dois na **mesma rede**. Não
+  precisa de `-p`.
+
+O Docker cria redes do tipo **bridge**: uma rede privada virtual onde cada
+container ganha um IP interno. Há um detalhe que confunde muita gente:
+
+| Rede                              | Containers se acham pelo nome?   |
+| --------------------------------- | -------------------------------- |
+| `bridge` padrão (sem `--network`) | **Não** — só por IP              |
+| rede criada por você              | **Sim** — DNS interno automático |
+
+Por isso, **sempre crie uma rede** para containers que precisam conversar. (O
+Docker Compose faz isso sozinho — [capítulo 7](/DevGuia/docker/tutorial/docker-compose/).)
+
+```text
+      sua máquina :8080
+         │  (-p 8080:80)
+┌────────┼──────────── rede "minha-rede" ─┐
+│  ┌─────▼───────┐       ┌─────────────┐  │
+│  │ web (nginx) │ ────► │  api :3000  │  │
+│  └─────────────┘ "api" └─────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+## Passo a passo
+
+<Steps>
+
+1. Crie uma rede chamada `minha-rede`:
+
+   ```bash
+   docker network create minha-rede
+   ```
+
+   <ComandoRef id="docker-network-create" />
+
+2. Suba um container de "servidor" nessa rede, **sem** publicar porta:
+
+   ```bash
+   docker run -d --name api --network minha-rede nginx
+   ```
+
+3. De outro container na mesma rede, acesse-o pelo nome:
+
+   ```bash
+   docker run --rm --network minha-rede alpine wget -qO- http://api
+   ```
+
+   O nome `api` foi resolvido para o IP do container. Do seu computador, porém,
+   `http://localhost` não chega nele — não há porta publicada.
+
+4. Veja quem está na rede:
+
+   <ComandoRef id="docker-network-inspect" />
+
+</Steps>
+
+Para ligar um container que já está rodando a outra rede:
+
+<ComandoRef id="docker-network-connect" />
+
+<Dica titulo="Porta interna, não a publicada">
+  Entre containers, use a porta **do container** (a da direita no `-p`). Se o banco foi iniciado com `-p
+  5433:5432`, outro container conecta em `banco:5432`; só o seu computador usa a 5433.
+</Dica>
+
+## O que pode dar errado
+
+- **`Could not resolve host`/`getaddrinfo ENOTFOUND banco`.** Os containers não
+  estão na mesma rede criada por você (ou um deles está na `bridge` padrão).
+  Confira com `docker network inspect`.
+- **A aplicação tenta `localhost:5432` e falha.** Dentro de um container,
+  `localhost` é **o próprio container**. Use o nome do outro container.
+- **Precisa acessar um serviço do seu computador a partir do container.** No
+  Docker Desktop, use o nome `host.docker.internal`.
+
+## Resumo
+
+- `-p` liga seu computador ao container; redes ligam containers entre si.
+- Em redes criadas por você, o nome do container funciona como endereço.
+- Dentro do container, `localhost` é ele mesmo.
+- Mais em [referência: Redes](/DevGuia/docker/referencia/#redes).

@@ -1,0 +1,59 @@
+---
+title: Tutorial de Docker
+description: Aprenda Docker do zero ao uso diário em 8 capítulos — containers, imagens, Dockerfile, volumes, redes, Compose e boas práticas.
+sidebar:
+  label: Visão geral
+  order: 0
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Este tutorial leva você do "o que é um container?" até um ambiente com vários
+serviços no Docker Compose, seguro e enxuto. Cada capítulo segue a mesma ordem:
+**objetivo → conceito → passo a passo → o que pode dar errado → resumo**.
+
+Se você já sabe o básico e só quer o comando, vá direto para a
+[referência de Docker](/DevGuia/docker/referencia/).
+
+<CardGrid>
+  <LinkCard
+    title="1. Containers vs VMs"
+    href="/DevGuia/docker/tutorial/containers-vs-vms/"
+    description="O problema que o Docker resolve e o vocabulário: imagem, container, registry."
+  />
+  <LinkCard
+    title="2. Instalação"
+    href="/DevGuia/docker/tutorial/instalacao/"
+    description="Docker Desktop no Windows e macOS, Docker Engine no Linux."
+  />
+  <LinkCard
+    title="3. Primeiro container"
+    href="/DevGuia/docker/tutorial/primeiro-container/"
+    description="run, ps, logs, exec, stop e rm — o ciclo de vida de um container."
+  />
+  <LinkCard
+    title="4. Imagens e Dockerfile"
+    href="/DevGuia/docker/tutorial/imagens-e-dockerfile/"
+    description="Camadas, cache e como empacotar sua própria aplicação."
+  />
+  <LinkCard
+    title="5. Volumes e persistência"
+    href="/DevGuia/docker/tutorial/volumes-e-persistencia/"
+    description="Volumes nomeados, bind mounts e backup de dados."
+  />
+  <LinkCard
+    title="6. Redes"
+    href="/DevGuia/docker/tutorial/redes/"
+    description="Portas publicadas e containers conversando pelo nome."
+  />
+  <LinkCard
+    title="7. Docker Compose"
+    href="/DevGuia/docker/tutorial/docker-compose/"
+    description="Aplicação + banco descritos em um arquivo e subidos com um comando."
+  />
+  <LinkCard
+    title="8. Boas práticas e segurança"
+    href="/DevGuia/docker/tutorial/boas-praticas-e-seguranca/"
+    description="Usuário não-root, imagens slim, multi-stage e segredos."
+  />
+</CardGrid>
