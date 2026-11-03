@@ -4,3 +4,7 @@
   nome: Git
   descricao: Comandos de Git para versionar código, do básico ao avançado.
   ordem: 1
+- id: docker
+  nome: Docker
+  descricao: Comandos de Docker e Docker Compose para criar, executar e manter containers.
+  ordem: 2

@@ -1,0 +1,103 @@
+categoria: Compose
+ordem: 7
+descricao: Subir vários containers juntos a partir de um compose.yaml.
+comandos:
+  - id: docker-compose-up
+    comando: docker compose up -d
+    descricao: Cria e inicia todos os serviços do compose.yaml em segundo plano (redes e volumes inclusos).
+    exemplo: |
+      docker compose up -d
+      docker compose up -d web       # só um serviço (e suas dependências)
+    flags:
+      - flag: -d
+        descricao: Em segundo plano.
+      - flag: docker compose -f <arquivo> up
+        descricao: Usa outro arquivo de compose. O -f vem antes do up e pode ser repetido para combinar arquivos.
+    nivel: basico
+    tags: [compose, subir, iniciar]
+    relacionados: [docker-compose-up-build, docker-compose-down, docker-compose-ps]
+
+  - id: docker-compose-up-build
+    comando: docker compose up -d --build
+    descricao: Reconstrói as imagens dos serviços que têm build antes de subir — use depois de mudar o código ou o Dockerfile.
+    nivel: basico
+    tags: [compose, build, subir]
+    relacionados: [docker-compose-up, docker-build]
+
+  - id: docker-compose-ps
+    comando: docker compose ps
+    descricao: Lista os containers do projeto com status, saúde e portas.
+    flags:
+      - flag: -a
+        descricao: Inclui os parados.
+    nivel: basico
+    tags: [compose, listar, status]
+    relacionados: [docker-compose-logs, docker-ps]
+
+  - id: docker-compose-logs
+    comando: docker compose logs -f <servico>
+    descricao: Acompanha os logs de um serviço (ou de todos, sem informar o nome).
+    flags:
+      - flag: --tail 50
+        descricao: Começa pelas últimas 50 linhas.
+    nivel: basico
+    tags: [compose, logs, debug]
+    relacionados: [docker-logs-f, docker-compose-ps]
+
+  - id: docker-compose-exec
+    comando: docker compose exec <servico> sh
+    descricao: Executa um comando dentro do container de um serviço que está rodando.
+    exemplo: |
+      docker compose exec web sh
+      docker compose exec banco psql -U postgres
+    nivel: basico
+    tags: [compose, terminal, executar]
+    relacionados: [docker-exec-it, docker-compose-run]
+
+  - id: docker-compose-run
+    comando: docker compose run --rm <servico> <comando>
+    descricao: Cria um container avulso de um serviço só para rodar um comando (migrações, testes, scripts).
+    exemplo: |
+      docker compose run --rm app npm run migrate
+    nivel: intermediario
+    tags: [compose, executar, tarefa]
+    relacionados: [docker-compose-exec]
+
+  - id: docker-compose-restart
+    comando: docker compose restart <servico>
+    descricao: Reinicia os containers de um serviço sem recriá-los (não aplica mudanças no compose.yaml).
+    nivel: basico
+    tags: [compose, reiniciar]
+    relacionados: [docker-compose-up]
+
+  - id: docker-compose-pull
+    comando: docker compose pull
+    descricao: Baixa as versões mais novas das imagens usadas pelos serviços. Depois, docker compose up -d aplica.
+    nivel: intermediario
+    tags: [compose, atualizar, imagem]
+    relacionados: [docker-compose-up, docker-pull]
+
+  - id: docker-compose-config
+    comando: docker compose config
+    descricao: Valida o compose.yaml e mostra a configuração final, já com variáveis do .env substituídas.
+    nivel: intermediario
+    tags: [compose, validar, config]
+    relacionados: [docker-compose-up]
+
+  - id: docker-compose-down
+    comando: docker compose down
+    descricao: Para e remove os containers e as redes do projeto. Volumes nomeados são mantidos.
+    destrutivo: true
+    aviso: Os containers são removidos, então dados gravados fora de volumes se perdem. Volumes nomeados continuam — a menos que você use -v.
+    nivel: basico
+    tags: [compose, parar, remover]
+    relacionados: [docker-compose-up, docker-compose-down-v]
+
+  - id: docker-compose-down-v
+    comando: docker compose down -v
+    descricao: Derruba o projeto e apaga também os volumes declarados no compose.yaml.
+    destrutivo: true
+    aviso: Apaga os volumes do projeto — por exemplo, todo o banco de dados de desenvolvimento. Use só quando quiser recomeçar do zero.
+    nivel: intermediario
+    tags: [compose, remover, volume, apagar]
+    relacionados: [docker-compose-down, docker-volume-rm]

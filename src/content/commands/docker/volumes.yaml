@@ -1,0 +1,65 @@
+categoria: Volumes
+ordem: 4
+descricao: Guardar dados que precisam sobreviver ao container.
+comandos:
+  - id: docker-volume-create
+    comando: docker volume create <nome>
+    descricao: Cria um volume nomeado, gerenciado pelo Docker. Também é criado automaticamente no primeiro docker run -v que o usar.
+    nivel: basico
+    tags: [volume, criar, persistencia]
+    relacionados: [docker-run-volume, docker-volume-ls]
+
+  - id: docker-volume-ls
+    comando: docker volume ls
+    descricao: Lista os volumes existentes.
+    flags:
+      - flag: --filter dangling=true
+        descricao: Só volumes que nenhum container usa.
+    nivel: basico
+    tags: [volume, listar]
+    relacionados: [docker-volume-inspect, docker-volume-prune]
+
+  - id: docker-volume-inspect
+    comando: docker volume inspect <nome>
+    descricao: Mostra os detalhes do volume, incluindo onde os dados ficam no disco do host (Mountpoint).
+    nivel: intermediario
+    tags: [volume, inspecao]
+    relacionados: [docker-volume-ls, docker-inspect]
+
+  - id: docker-run-volume
+    comando: docker run -v <volume>:<caminho> <imagem>
+    descricao: Monta um volume nomeado dentro do container — os dados continuam lá depois que o container for removido.
+    exemplo: |
+      docker run -d --name banco \
+        -e POSTGRES_PASSWORD=segredo \
+        -v dados-pg:/var/lib/postgresql/data \
+        postgres:17
+      # sintaxe longa equivalente:
+      docker run --mount type=volume,source=dados-pg,target=/var/lib/postgresql/data postgres:17
+    nivel: basico
+    tags: [volume, persistencia, run]
+    relacionados: [docker-volume-create, docker-run-bind]
+
+  - id: docker-run-bind
+    comando: docker run -v "$(pwd)":/app <imagem>
+    descricao: Monta uma pasta da sua máquina dentro do container (bind mount) — mudanças aparecem nos dois lados na hora.
+    exemplo: |
+      docker run --rm -v "$(pwd)":/app -w /app node:22 npm test
+      docker run -d -p 8080:80 -v "$(pwd)/site":/usr/share/nginx/html:ro nginx
+    flags:
+      - flag: :ro
+        descricao: Monta somente leitura (o container não consegue alterar os arquivos).
+      - flag: -w <pasta>
+        descricao: Define a pasta de trabalho dentro do container.
+    nivel: intermediario
+    tags: [volume, bind, desenvolvimento, pasta]
+    relacionados: [docker-run-volume]
+
+  - id: docker-volume-rm
+    comando: docker volume rm <nome>
+    descricao: Apaga um volume. O Docker recusa se algum container (mesmo parado) estiver usando.
+    destrutivo: true
+    aviso: Os dados do volume — um banco de dados inteiro, por exemplo — são apagados sem volta. Faça backup antes (veja o tutorial de volumes).
+    nivel: intermediario
+    tags: [volume, remover, apagar]
+    relacionados: [docker-volume-ls, docker-volume-prune]
