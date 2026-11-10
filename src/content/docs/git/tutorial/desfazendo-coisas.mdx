@@ -8,6 +8,7 @@ sidebar:
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** saber qual comando usa em cada situação de "ops", e quais deles
 apagam dados de verdade.
@@ -83,6 +84,15 @@ provavelmente ainda está lá:
   rejeitado. Para o que já está no remoto, use `revert`.
 - **Confundir `HEAD~1` com `HEAD^1`** — para commits normais são iguais. Em
   dúvida, use o hash do `git log --oneline`.
+
+## Teste rápido
+
+<Quiz
+  pergunta="O commit errado já foi enviado e o time já baixou. Como desfazer com segurança?"
+  opcoes={['`git revert <commit>`', '`git reset --hard HEAD~1` e `push --force`', '`git commit --amend`']}
+  correta={0}
+  explicacao="O `revert` cria um commit novo que desfaz o antigo, sem reescrever o histórico que os outros já têm."
+/>
 
 ## Resumo
 

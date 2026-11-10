@@ -1,86 +1,328 @@
 ---
-// Diagrama das quatro áreas do Git e dos comandos que movem mudanças entre elas.
+// As quatro áreas do Git, interativas: botões movem um arquivo entre elas.
+// Sem JavaScript, fica o diagrama estático com a legenda.
 const areas = [
-  { nome: 'Diretório de trabalho', detalhe: 'seus arquivos no disco' },
-  { nome: 'Staging (índice)', detalhe: 'o que vai no próximo commit' },
-  { nome: 'Repositório local', detalhe: 'histórico de commits (.git)' },
-  { nome: 'Remoto', detalhe: 'GitHub, GitLab…' },
+  { id: 'trabalho', nome: 'Diretório de trabalho', detalhe: 'seus arquivos no disco' },
+  { id: 'stage', nome: 'Staging (índice)', detalhe: 'o que vai no próximo commit' },
+  { id: 'local', nome: 'Repositório local', detalhe: 'histórico de commits (.git)' },
+  { id: 'remoto', nome: 'Remoto', detalhe: 'GitHub, GitLab…' },
 ];
-const setas = ['git add', 'git commit', 'git push'];
 ---
 
-<figure class="areas not-content">
-  <ol>
+<figure class="areas not-content" data-areas-git>
+  <ol class="colunas">
     {areas.map((a, i) => (
-      <>
-        <li>
-          <strong>{a.nome}</strong>
-          <span>{a.detalhe}</span>
-        </li>
-        {setas[i] && (
-          <li class="seta" aria-hidden="true">
-            <code>{setas[i]}</code>
-          </li>
-        )}
-      </>
+      <li class="area" data-area={a.id}>
+        <span class="passo" aria-hidden="true">
+          {i + 1}
+        </span>
+        <strong>{a.nome}</strong>
+        <span class="detalhe">{a.detalhe}</span>
+        <div class="itens" data-itens />
+      </li>
     ))}
   </ol>
+
+  <div class="painel" data-painel hidden>
+    <p class="dica">Aperte os comandos na ordem e veja o arquivo andar 👇</p>
+    <div class="botoes">
+      <button type="button" class="cmd" data-acao="editar">
+        ✏️ editar index.html
+      </button>
+      <button type="button" class="cmd" data-acao="add">
+        <code>git add</code>
+      </button>
+      <button type="button" class="cmd" data-acao="commit">
+        <code>git commit</code>
+      </button>
+      <button type="button" class="cmd" data-acao="push">
+        <code>git push</code>
+      </button>
+    </div>
+    <div class="botoes desfazer">
+      <span>Desfazer:</span>
+      <button type="button" class="cmd" data-acao="unstage">
+        <code>git restore --staged</code>
+      </button>
+      <button type="button" class="cmd" data-acao="reset">
+        <code>git reset --soft HEAD~1</code>
+      </button>
+      <button type="button" class="cmd zerar" data-acao="zerar">
+        ↺ recomeçar
+      </button>
+    </div>
+    <p class="narracao" data-narracao aria-live="polite">
+      Tudo limpo: nenhum arquivo modificado.
+    </p>
+  </div>
+
   <figcaption>
     As áreas do Git: <code>git add</code> leva mudanças ao staging, <code>git commit</code> grava no histórico
     local e <code>git push</code> envia ao remoto. <code>git pull</code> faz o caminho de volta.
   </figcaption>
 </figure>
 
+<script>
+  for (const fig of document.querySelectorAll<HTMLElement>('[data-areas-git]')) {
+    const painel = fig.querySelector<HTMLElement>('[data-painel]')!;
+    painel.hidden = false;
+    fig.classList.add('ativo');
+
+    const estado = { trabalho: false, stage: false, commits: [] as string[], enviados: 0, edicoes: 0 };
+    const hash = () => Math.random().toString(16).slice(2, 9);
+    const itens = (area: string) => fig.querySelector<HTMLElement>(`[data-area="${area}"] [data-itens]`)!;
+    const narrar = (texto: string) => (fig.querySelector('[data-narracao]')!.textContent = texto);
+
+    const chip = (texto: string, tipo: string) => {
+      const s = document.createElement('span');
+      s.className = `chip ${tipo}`;
+      s.textContent = texto;
+      return s;
+    };
+
+    const desenhar = () => {
+      itens('trabalho').replaceChildren(...(estado.trabalho ? [chip('index.html ✏️', 'arquivo')] : []));
+      itens('stage').replaceChildren(...(estado.stage ? [chip('index.html', 'arquivo')] : []));
+      itens('local').replaceChildren(
+        ...estado.commits.map((c, i) => chip(c, i < estado.enviados ? 'commit enviado' : 'commit')).reverse(),
+      );
+      itens('remoto').replaceChildren(
+        ...estado.commits
+          .slice(0, estado.enviados)
+          .map((c) => chip(c, 'commit'))
+          .reverse(),
+      );
+      const pode: Record<string, boolean> = {
+        editar: !estado.trabalho,
+        add: estado.trabalho,
+        commit: estado.stage,
+        push: estado.commits.length > estado.enviados,
+        unstage: estado.stage,
+        reset: estado.commits.length > estado.enviados && !estado.stage,
+        zerar: true,
+      };
+      for (const b of fig.querySelectorAll<HTMLButtonElement>('[data-acao]'))
+        b.disabled = !pode[b.dataset.acao!];
+    };
+
+    const acoes: Record<string, () => void> = {
+      editar() {
+        estado.trabalho = true;
+        estado.edicoes++;
+        narrar(
+          'Você editou o index.html. A mudança existe só no diretório de trabalho — o Git ainda não guardou nada.',
+        );
+      },
+      add() {
+        estado.trabalho = false;
+        estado.stage = true;
+        narrar('git add: a mudança foi para o staging. Ela vai entrar no próximo commit.');
+      },
+      commit() {
+        estado.stage = false;
+        const h = hash();
+        estado.commits.push(h);
+        narrar(`git commit: foi criado o commit ${h} no histórico local. Ainda não está no GitHub!`);
+      },
+      push() {
+        const n = estado.commits.length - estado.enviados;
+        estado.enviados = estado.commits.length;
+        narrar(
+          `git push: ${n === 1 ? '1 commit enviado' : `${n} commits enviados`} ao remoto. Agora o time pode baixar.`,
+        );
+      },
+      unstage() {
+        estado.stage = false;
+        estado.trabalho = true;
+        narrar(
+          'git restore --staged: a mudança saiu do staging e voltou para o diretório de trabalho. Nada se perdeu.',
+        );
+      },
+      reset() {
+        const h = estado.commits.pop();
+        estado.stage = true;
+        narrar(
+          `git reset --soft HEAD~1: o commit ${h} foi desfeito e a mudança voltou para o staging. Só dá para fazer isso com segurança porque ele ainda não foi enviado.`,
+        );
+      },
+      zerar() {
+        Object.assign(estado, { trabalho: false, stage: false, commits: [], enviados: 0 });
+        narrar('Tudo limpo: nenhum arquivo modificado.');
+      },
+    };
+
+    fig.addEventListener('click', (e) => {
+      const botao = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-acao]');
+      if (!botao) return;
+      acoes[botao.dataset.acao!]();
+      desenhar();
+    });
+    desenhar();
+  }
+</script>
+
 <style>
   .areas {
     margin-block: 1.5rem;
+    padding: 1.1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background: var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
   }
-  .areas ol {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    list-style: none;
-    padding: 0;
+  .colunas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.6rem;
     margin: 0;
+    padding: 0;
+    list-style: none;
   }
-  .areas li:not(.seta) {
-    flex: 1 1 8rem;
+  @media (max-width: 40rem) {
+    .colunas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .area {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    padding: 0.75rem;
-    border: 1px solid var(--sl-color-hairline-shade);
-    border-radius: 0.5rem;
-    background: var(--sl-color-gray-6);
+    padding: 0.8rem 0.7rem;
+    border: 1px dashed var(--sl-color-gray-4);
+    border-radius: 0.7rem;
+    background: var(--dg-superficie-2);
     text-align: center;
   }
-  .areas li span {
+  .passo {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0 auto 0.2rem;
+    border-radius: 50%;
+    background: var(--sl-color-accent);
+    color: #fff;
     font-size: var(--sl-text-xs);
-    color: var(--sl-color-gray-2);
+    font-weight: 700;
   }
-  .seta {
+  .area strong {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-white);
+  }
+  .detalhe {
     font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  .itens {
+    display: none;
+  }
+  .ativo .itens {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 4.2rem;
+    margin-top: 0.5rem;
+  }
+  .itens :global(.chip) {
+    max-width: 100%;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.45rem;
+    font-family: var(--dg-mono);
+    font-size: 0.72rem;
+    animation: chegar 350ms cubic-bezier(0.3, 1.5, 0.5, 1);
+    overflow-wrap: anywhere;
+  }
+  .itens :global(.arquivo) {
+    background: #facc15;
+    color: #1a1a1a;
+    font-weight: 700;
+  }
+  .itens :global(.commit) {
+    background: var(--sl-color-accent);
+    color: #fff;
+  }
+  .itens :global(.commit.enviado) {
+    background: transparent;
+    border: 1px solid var(--sl-color-accent);
     color: var(--sl-color-text-accent);
   }
-  .seta::after {
-    content: ' →';
+  @keyframes chegar {
+    from {
+      opacity: 0;
+      transform: translateX(-14px) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
-  figcaption {
-    margin-top: 0.75rem;
+  .painel[hidden] {
+    display: none;
+  }
+  .dica {
+    margin: 1rem 0 0.5rem;
     font-size: var(--sl-text-sm);
     color: var(--sl-color-gray-2);
   }
-  @media (max-width: 40rem) {
-    .areas ol {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    .seta {
-      text-align: center;
-    }
-    .seta::after {
-      content: ' ↓';
-    }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .desfazer {
+    margin-top: 0.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .cmd {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--dg-superficie-2);
+    color: var(--sl-color-white);
+    font: 600 var(--sl-text-sm) / 1.2 var(--sl-font);
+    cursor: pointer;
+    transition:
+      transform var(--dg-transicao),
+      border-color var(--dg-transicao),
+      opacity var(--dg-transicao);
+  }
+  .cmd code {
+    font-family: var(--dg-mono);
+    font-size: 0.85em;
+  }
+  .cmd:hover:not(:disabled) {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-1px);
+  }
+  .cmd:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+  .cmd:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .zerar {
+    margin-inline-start: auto;
+  }
+  .narracao {
+    min-height: 3rem;
+    margin: 0.8rem 0 0;
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.6rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-1);
+    font-size: var(--sl-text-sm);
+  }
+  figcaption {
+    margin-top: 0.8rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .ativo figcaption {
+    display: none;
   }
 </style>

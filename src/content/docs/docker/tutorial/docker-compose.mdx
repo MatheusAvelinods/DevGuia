@@ -9,6 +9,7 @@ import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** trocar uma sequência de `docker run` com dezenas de flags por um
 arquivo versionado e um único comando.
@@ -111,6 +112,15 @@ com um Postgres.
   `docker compose down -v` remove também os volumes do projeto. Em desenvolvimento é uma forma rápida de
   recomeçar; com dados que importam, é um desastre.
 </Aviso>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Você mudou o código da API. Qual comando reconstrói a imagem e sobe de novo?"
+  opcoes={['`docker compose restart`', '`docker compose down -v`', '`docker compose up -d --build`']}
+  correta={2}
+  explicacao="O `--build` reconstrói as imagens. O `restart` só reinicia o que já existe e o `down -v` ainda apagaria os volumes!"
+/>
 
 ## Resumo
 

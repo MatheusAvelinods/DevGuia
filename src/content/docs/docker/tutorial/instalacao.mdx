@@ -9,6 +9,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** ter o Docker instalado e rodar o primeiro container de teste.
 
@@ -107,6 +108,19 @@ Se aparecer a mensagem _"Hello from Docker!"_, está tudo certo.
   O Compose agora é um plugin do próprio Docker: escreva `docker compose` (com espaço). O antigo
   `docker-compose` (com hífen) foi descontinuado.
 </Dica>
+
+## Teste rápido
+
+<Quiz
+  pergunta="O `docker version` mostra o Client, mas dá erro na parte do Server. O que isso indica?"
+  opcoes={[
+    'O daemon (`dockerd`) não está rodando',
+    'O Docker não está instalado',
+    'Falta fazer `docker login`',
+  ]}
+  correta={0}
+  explicacao="O cliente está instalado, mas não há daemon para atender. Abra o Docker Desktop ou rode `sudo systemctl start docker`."
+/>
 
 ## Resumo
 

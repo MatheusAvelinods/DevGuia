@@ -9,6 +9,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** ter o Git instalado e configurado com a sua identidade.
 
@@ -102,6 +103,15 @@ git --version
   Não coloque senhas ou tokens no `~/.gitconfig`. Para autenticar no GitHub, use SSH ou o gerenciador de
   credenciais — veja o [capítulo 5](/DevGuia/git/tutorial/trabalhando-com-remoto/).
 </Aviso>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Você quer usar um e-mail diferente só no repositório do trabalho. Qual escopo de configuração usar?"
+  opcoes={['`--local` (ou nenhum escopo, rodando dentro do repositório)', '`--global`', '`--system`']}
+  correta={0}
+  explicacao="`--local` grava em `.git/config` e vale só para aquele repositório, sobrescrevendo o `--global`."
+/>
 
 ## Resumo
 

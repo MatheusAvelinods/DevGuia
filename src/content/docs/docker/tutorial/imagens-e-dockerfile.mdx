@@ -9,6 +9,7 @@ import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** escrever um Dockerfile, construir a imagem da sua aplicação e
 entender por que a ordem das instruções importa.
@@ -129,6 +130,19 @@ no Dockerfile exige esse arquivo para instalar exatamente as mesmas versões.
   Nunca coloque senhas ou tokens em `ENV`, `ARG` ou arquivos copiados: qualquer pessoa com a imagem consegue
   lê-los, mesmo que você apague em uma camada posterior. Passe segredos na execução (`-e` ou `--env-file`).
 </Aviso>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Por que copiar o `package.json` e rodar `npm ci` antes do `COPY . .`?"
+  opcoes={[
+    'Porque o Docker exige essa ordem',
+    'Para a imagem ficar somente leitura',
+    'Para aproveitar o cache: as dependências só são reinstaladas quando o `package.json` muda',
+  ]}
+  correta={2}
+  explicacao="Cada instrução vira uma camada em cache. Mudar o código invalida só as camadas a partir do `COPY . .`."
+/>
 
 ## Resumo
 

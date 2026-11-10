@@ -8,6 +8,7 @@ sidebar:
 import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** manter sua branch atualizada sem commits de merge e organizar seus
 commits antes de abrir um Pull Request.
@@ -85,6 +86,19 @@ mensagem para o marcado com `r`.
 - **`push` rejeitado depois do rebase.** É esperado: o histórico mudou. Use
   `--force-with-lease`, nunca `--force` puro.
 - **Perdeu commits no rebase interativo.** Eles estão no `git reflog`.
+
+## Teste rápido
+
+<Quiz
+  pergunta="Qual é a regra de ouro do rebase?"
+  opcoes={[
+    'Sempre usar `--force` depois',
+    'Não fazer rebase de commits que outras pessoas já baixaram',
+    'Fazer rebase só na `main`',
+  ]}
+  correta={1}
+  explicacao="Rebase reescreve commits (novos hashes). Em commits compartilhados, isso bagunça o histórico de todo mundo."
+/>
 
 ## Resumo
 

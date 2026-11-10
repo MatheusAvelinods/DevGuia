@@ -8,6 +8,7 @@ sidebar:
 import { Steps } from '@astrojs/starlight/components';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** juntar tudo num fluxo que funciona em time — e em projetos
 pessoais também.
@@ -110,6 +111,15 @@ O `!` (ou um rodapé `BREAKING CHANGE:`) indica uma mudança incompatível.
   Proteja a `main` no GitHub (_Settings → Branches_) exigindo PR e CI verde. Assim ninguém — nem você com
   pressa — envia direto para ela.
 </Aviso>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Qual mensagem segue o padrão Conventional Commits?"
+  opcoes={['`ajustes finais`', '`Update login.js`', '`feat(login): adiciona login com Google`']}
+  correta={2}
+  explicacao="O formato é `tipo(escopo opcional): descrição` — aqui, uma nova funcionalidade (`feat`) no escopo `login`."
+/>
 
 ## Resumo
 

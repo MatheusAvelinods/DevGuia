@@ -9,6 +9,7 @@ import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** criar um repositório e completar o ciclo básico — editar, ver o
 que mudou, preparar e gravar.
@@ -103,6 +104,15 @@ dist/
   Prefira vários commits com um assunto cada a um commit gigante no fim do dia. Use `git add -p` para escolher
   só parte das mudanças de um arquivo.
 </Dica>
+
+## Teste rápido
+
+<Quiz
+  pergunta="O `git commit` respondeu `nothing added to commit`. O que faltou?"
+  opcoes={['Rodar `git push` antes', 'Criar uma branch nova', 'Colocar as mudanças no stage com `git add`']}
+  correta={2}
+  explicacao="O commit leva apenas o que está no stage. Confira com `git status` e use `git add` nos arquivos."
+/>
 
 ## Resumo
 

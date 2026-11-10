@@ -8,6 +8,7 @@ sidebar:
 import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** desenvolver algo numa branch separada e trazer o resultado para a
 `main`, inclusive quando há conflito.
@@ -103,6 +104,15 @@ Se ficou confuso e quiser recomeçar:
   (`git switch -c feat/x`) — os commits vão junto — e depois volte a `main` ao
   estado do remoto (veja o [capítulo 6](/DevGuia/git/tutorial/desfazendo-coisas/)).
 - **Esquecer marcadores no arquivo.** Antes do `git add`, procure por `<<<<<<<`.
+
+## Teste rápido
+
+<Quiz
+  pergunta="Um merge parou com `CONFLICT`. Você editou o arquivo e removeu os marcadores. E agora?"
+  opcoes={['`git merge --abort`', '`git add` no arquivo e depois `git commit`', '`git push --force`']}
+  correta={1}
+  explicacao="O `git add` marca o conflito como resolvido e o `git commit` conclui o merge. O `--abort` jogaria fora o merge."
+/>
 
 ## Resumo
 

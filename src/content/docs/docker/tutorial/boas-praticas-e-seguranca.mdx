@@ -8,6 +8,7 @@ sidebar:
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** produzir imagens pequenas, rápidas de baixar e com menos
 superfície de ataque — e manter o disco sob controle.
@@ -139,6 +140,19 @@ E limpe com o comando adequado — do mais seguro ao mais agressivo:
   Base `-slim` com versão fixa · multi-stage · `.dockerignore` · `USER` não-root · nenhum segredo na imagem ·
   `docker scout` antes de publicar.
 </Dica>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Qual é o principal ganho de um multi-stage build?"
+  opcoes={[
+    'A imagem final leva só o necessário para rodar, sem as ferramentas de build',
+    'O build fica mais lento, porém mais seguro',
+    'Permite rodar dois containers a partir da mesma imagem',
+  ]}
+  correta={0}
+  explicacao="Compiladores, código-fonte e `devDependencies` ficam na etapa de build; a imagem final é menor e tem menos vulnerabilidades."
+/>
 
 ## Resumo
 

@@ -8,6 +8,7 @@ sidebar:
 import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** fazer uma aplicação falar com um banco de dados em outro container
 e entender quando publicar portas.
@@ -92,6 +93,19 @@ Para ligar um container que já está rodando a outra rede:
   `localhost` é **o próprio container**. Use o nome do outro container.
 - **Precisa acessar um serviço do seu computador a partir do container.** No
   Docker Desktop, use o nome `host.docker.internal`.
+
+## Teste rápido
+
+<Quiz
+  pergunta="A aplicação, dentro de um container, tenta `localhost:5432` e o banco está em outro container. Por que falha?"
+  opcoes={[
+    'Dentro do container, `localhost` é ele mesmo: use o nome do container do banco',
+    'Falta publicar a porta com `-p`',
+    'O Postgres não aceita conexões de containers',
+  ]}
+  correta={0}
+  explicacao="Numa rede criada por você, o nome do container funciona como endereço: `banco:5432`."
+/>
 
 ## Resumo
 

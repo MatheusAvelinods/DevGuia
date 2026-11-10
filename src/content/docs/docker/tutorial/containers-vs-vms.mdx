@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import Dica from '../../../../components/Dica.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** entender o que é um container, por que ele não é uma máquina
 virtual e os três conceitos que sustentam todo o Docker.
@@ -76,6 +77,19 @@ A relação lembra programação orientada a objetos: a **imagem é a classe**, 
   ([capítulo 5](/DevGuia/docker/tutorial/volumes-e-persistencia/)).
 - **Achar que Docker substitui VM em tudo.** Para isolar código não confiável
   ou rodar outro sistema operacional, a VM ainda é a ferramenta certa.
+
+## Teste rápido
+
+<Quiz
+  pergunta="O que um container compartilha com a máquina onde ele roda?"
+  opcoes={[
+    'Nada: ele tem um sistema operacional completo',
+    'O kernel do sistema operacional',
+    'Só a placa de rede',
+  ]}
+  correta={1}
+  explicacao="Containers isolam processos, arquivos e rede, mas usam o kernel do host — por isso são leves e iniciam rápido."
+/>
 
 ## Resumo
 

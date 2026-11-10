@@ -1,0 +1,228 @@
+---
+// Teste rápido de múltipla escolha para o fim dos capítulos.
+// Uso no MDX:
+//   <Quiz pergunta="..." opcoes={['`git add`', '...']} correta={0} explicacao="..." />
+// Trechos entre crases viram <code>. Sem JavaScript, mostra um "Ver resposta".
+interface Props {
+  pergunta: string;
+  opcoes: string[];
+  /** índice (começando em 0) da opção correta */
+  correta: number;
+  explicacao: string;
+}
+
+const { pergunta, opcoes, correta, explicacao } = Astro.props;
+if (correta < 0 || correta >= opcoes.length) {
+  throw new Error(`<Quiz pergunta="${pergunta}">: "correta" fora das opções`);
+}
+
+const escapar = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** `trecho` → <code>trecho</code>, com o resto escapado. */
+const comCodigo = (t: string) =>
+  t
+    .split('`')
+    .map((parte, i) => (i % 2 ? `<code>${escapar(parte)}</code>` : escapar(parte)))
+    .join('');
+const id = `quiz-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div class="quiz not-content" data-quiz data-correta={correta}>
+  <p class="rotulo">
+    <span aria-hidden="true">🧠</span> Teste rápido
+  </p>
+  <p class="pergunta" id={id} set:html={comCodigo(pergunta)} />
+  <div class="opcoes" role="group" aria-labelledby={id} data-opcoes hidden>
+    {opcoes.map((o, i) => (
+      <button type="button" class="opcao" data-i={i}>
+        <span class="letra" aria-hidden="true">
+          {String.fromCharCode(65 + i)}
+        </span>
+        <span set:html={comCodigo(o)} />
+      </button>
+    ))}
+  </div>
+  <div class="retorno" data-retorno aria-live="polite" hidden>
+    <p class="veredito" data-veredito></p>
+    <p class="explicacao" set:html={comCodigo(explicacao)} />
+    <button type="button" class="dg-botao" data-de-novo>
+      Tentar de novo
+    </button>
+  </div>
+  <details class="sem-js" data-sem-js>
+    <summary>Ver resposta</summary>
+    <p>
+      <strong set:html={comCodigo(opcoes[correta])} />
+    </p>
+    <p set:html={comCodigo(explicacao)} />
+  </details>
+</div>
+
+<script>
+  for (const quiz of document.querySelectorAll<HTMLElement>('[data-quiz]')) {
+    const correta = Number(quiz.dataset.correta);
+    const opcoes = quiz.querySelector<HTMLElement>('[data-opcoes]')!;
+    const retorno = quiz.querySelector<HTMLElement>('[data-retorno]')!;
+    const veredito = quiz.querySelector<HTMLElement>('[data-veredito]')!;
+    const botoes = [...opcoes.querySelectorAll<HTMLButtonElement>('button')];
+    quiz.querySelector<HTMLElement>('[data-sem-js]')!.hidden = true;
+    opcoes.hidden = false;
+
+    botoes.forEach((b, i) =>
+      b.addEventListener('click', () => {
+        const acertou = i === correta;
+        botoes.forEach((x, j) => {
+          x.disabled = true;
+          x.classList.toggle('correta', j === correta);
+          x.classList.toggle('errada', j === i && !acertou);
+        });
+        quiz.classList.toggle('acertou', acertou);
+        veredito.textContent = acertou ? '🎉 Isso aí!' : '🤔 Não foi dessa vez.';
+        retorno.hidden = false;
+      }),
+    );
+
+    quiz.querySelector('[data-de-novo]')!.addEventListener('click', () => {
+      botoes.forEach((x) => {
+        x.disabled = false;
+        x.classList.remove('correta', 'errada');
+      });
+      quiz.classList.remove('acertou');
+      retorno.hidden = true;
+      botoes[0].focus();
+    });
+  }
+</script>
+
+<style>
+  .quiz {
+    margin-block: 1.5rem;
+    padding: 1.3rem 1.4rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background:
+      radial-gradient(
+        20rem 8rem at 0% 0%,
+        color-mix(in srgb, var(--sl-color-accent) 14%, transparent),
+        transparent
+      ),
+      var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+  }
+  .rotulo {
+    margin: 0;
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+  }
+  .pergunta {
+    margin: 0.4rem 0 1rem;
+    font-family: var(--dg-font-titulo);
+    font-size: var(--sl-text-lg);
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  .opcoes {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .opcoes[hidden],
+  .retorno[hidden],
+  .sem-js[hidden] {
+    display: none;
+  }
+  .opcao {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.7rem;
+    background: var(--dg-superficie-2);
+    color: var(--sl-color-gray-1);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition:
+      transform var(--dg-transicao),
+      border-color var(--dg-transicao);
+  }
+  .opcao:hover:not(:disabled) {
+    transform: translateX(3px);
+    border-color: var(--sl-color-accent);
+  }
+  .opcao:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+  .letra {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--sl-color-gray-6);
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+  }
+  .opcao.correta,
+  .opcao.errada {
+    opacity: 1;
+    border-width: 2px;
+    padding: calc(0.7rem - 1px) calc(0.9rem - 1px);
+  }
+  .opcao.correta {
+    border-color: #22c55e;
+  }
+  .opcao.correta .letra {
+    background: #16a34a;
+    color: #fff;
+  }
+  .opcao.errada {
+    border-color: #ef4444;
+    animation: tremer 350ms ease;
+  }
+  .opcao.errada .letra {
+    background: #dc2626;
+    color: #fff;
+  }
+  .acertou .opcao.correta {
+    animation: dg-pulo 400ms ease;
+  }
+  @keyframes tremer {
+    25%,
+    75% {
+      transform: translateX(-4px);
+    }
+    50% {
+      transform: translateX(4px);
+    }
+  }
+  .retorno {
+    margin-top: 1rem;
+    animation: dg-surgir 250ms ease;
+  }
+  .veredito {
+    margin: 0;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .explicacao {
+    margin: 0.35rem 0 0.9rem;
+    color: var(--sl-color-gray-2);
+  }
+  .quiz :global(code) {
+    padding: 0.1em 0.35em;
+    border-radius: 0.3rem;
+    background: var(--sl-color-gray-6);
+    font-family: var(--dg-mono);
+    font-size: 0.88em;
+  }
+  .sem-js summary {
+    cursor: pointer;
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+  }
+</style>
