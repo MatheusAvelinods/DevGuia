@@ -6,6 +6,16 @@ com aviso quando ele é destrutivo.
 
 🔗 **Site:** https://matheusavelinods.github.io/DevGuia/
 
+## O que tem lá
+
+- **Trilhas de Git e Docker** — tutoriais curtos, cada capítulo com um teste rápido no fim
+- **Referência** — 150 comandos com botão de copiar, filtros por nível e aviso nos destrutivos
+- **Modo Treino** 🎮 — jogo de "qual é o comando?" com pontos, sequência de acertos e recorde
+- **Diagramas interativos** — aperte `git add`/`commit`/`push` e veja o arquivo andar entre as áreas;
+  rode, pare e remova um container e veja o que acontece com os dados
+- **Progresso** — marque capítulos como concluídos; fica salvo só no seu navegador (sem conta, sem cookies)
+- Busca instantânea (`Ctrl+K`), tema claro/escuro e Lighthouse 100
+
 ## Stack
 
 | Camada    | Escolha                                                                   |

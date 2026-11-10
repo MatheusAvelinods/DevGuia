@@ -8,7 +8,8 @@
         "http://localhost:4321/DevGuia/git/referencia/",
         "http://localhost:4321/DevGuia/git/tutorial/desfazendo-coisas/",
         "http://localhost:4321/DevGuia/docker/referencia/",
-        "http://localhost:4321/DevGuia/docker/tutorial/docker-compose/"
+        "http://localhost:4321/DevGuia/docker/tutorial/docker-compose/",
+        "http://localhost:4321/DevGuia/treino/"
       ],
       "numberOfRuns": 1,
       "settings": {
