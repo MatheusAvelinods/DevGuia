@@ -1,0 +1,164 @@
+---
+// Cartão no fim de cada capítulo: marca como concluído e mostra o avanço na trilha.
+import { todasTrilhas } from '../lib/trilhas';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const trilha = (await todasTrilhas()).find((t) => t.capitulos.some((c) => c.id === id));
+const capitulos = trilha?.capitulos.filter((c) => !c.id.endsWith('/tutorial')) ?? [];
+const indice = capitulos.findIndex((c) => c.id === id);
+const proximo = capitulos[indice + 1];
+---
+
+{trilha && (
+  <section
+    class="concluir not-content"
+    data-concluir={id}
+    data-capitulos={JSON.stringify(capitulos.map((c) => c.id))}
+    aria-labelledby="concluir-titulo"
+  >
+    <div class="topo">
+      <h2 id="concluir-titulo">Terminou a leitura?</h2>
+      <p class="contagem" data-contagem>
+        Capítulo {indice + 1} de {capitulos.length} da trilha {trilha.nome}
+      </p>
+    </div>
+    <div
+      class="barra"
+      role="progressbar"
+      aria-label={`Progresso na trilha ${trilha.nome}`}
+      aria-valuemin="0"
+      aria-valuemax={capitulos.length}
+      aria-valuenow="0"
+      data-barra
+    >
+      <span style="width: 0%" />
+    </div>
+    <div class="acoes">
+      <button type="button" class="dg-botao dg-botao--primario" data-alternar aria-pressed="false">
+        <span class="icone" aria-hidden="true">
+          ○
+        </span>
+        <span data-rotulo>Marcar como concluído</span>
+      </button>
+      {proximo && (
+        <a class="dg-botao" href={proximo.href}>
+          Próximo: {proximo.titulo} →
+        </a>
+      )}
+    </div>
+    <p class="parabens" data-parabens hidden>
+      🎉 Trilha {trilha.nome} completa! Que tal testar o que aprendeu no{' '}
+      <a href={`${import.meta.env.BASE_URL}treino/`}>Modo Treino</a>?
+    </p>
+  </section>
+)}
+
+<script>
+  import { EVENTO_PROGRESSO, lerProgresso, marcarCapitulo } from '../scripts/progresso';
+
+  for (const secao of document.querySelectorAll<HTMLElement>('[data-concluir]')) {
+    const id = secao.dataset.concluir!;
+    const capitulos: string[] = JSON.parse(secao.dataset.capitulos!);
+    const botao = secao.querySelector<HTMLButtonElement>('[data-alternar]')!;
+    const barra = secao.querySelector<HTMLElement>('[data-barra]')!;
+
+    const atualizar = () => {
+      const { capitulos: feitos } = lerProgresso();
+      const concluido = Boolean(feitos[id]);
+      const total = capitulos.filter((c) => feitos[c]).length;
+      botao.setAttribute('aria-pressed', String(concluido));
+      botao.classList.toggle('feito', concluido);
+      botao.querySelector('.icone')!.textContent = concluido ? '✓' : '○';
+      botao.querySelector('[data-rotulo]')!.textContent = concluido ? 'Concluído!' : 'Marcar como concluído';
+      barra.setAttribute('aria-valuenow', String(total));
+      barra.querySelector('span')!.style.width = `${(total / capitulos.length) * 100}%`;
+      secao.querySelector<HTMLElement>('[data-parabens]')!.hidden = total < capitulos.length;
+      secao.querySelector('[data-contagem]')!.textContent =
+        `${total} de ${capitulos.length} capítulos concluídos nesta trilha`;
+    };
+
+    botao.addEventListener('click', () => {
+      const vaiConcluir = botao.getAttribute('aria-pressed') !== 'true';
+      marcarCapitulo(id, vaiConcluir);
+      if (vaiConcluir) {
+        botao.classList.remove('festa');
+        void botao.offsetWidth; // reinicia a animação
+        botao.classList.add('festa');
+      }
+    });
+    document.addEventListener(EVENTO_PROGRESSO, atualizar);
+    atualizar();
+  }
+</script>
+
+<style>
+  .concluir {
+    margin-top: 3rem;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background:
+      radial-gradient(
+        30rem 10rem at 100% 0%,
+        color-mix(in srgb, var(--sl-color-accent) 18%, transparent),
+        transparent
+      ),
+      var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+  }
+  .topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+  }
+  h2 {
+    margin: 0;
+    font-size: var(--sl-text-xl);
+    color: var(--sl-color-white);
+  }
+  .contagem {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .barra {
+    height: 0.5rem;
+    margin: 1rem 0 1.1rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    overflow: hidden;
+  }
+  .barra span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--sl-color-accent), var(--dg-rosa));
+    transition: width 500ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .feito {
+    background: #16a34a;
+  }
+  .festa .icone {
+    display: inline-block;
+    animation: dg-pulo 450ms ease;
+  }
+  .parabens {
+    margin: 1rem 0 0;
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  .parabens a {
+    color: var(--sl-color-text-accent);
+  }
+</style>

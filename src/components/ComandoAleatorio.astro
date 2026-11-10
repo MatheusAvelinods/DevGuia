@@ -1,0 +1,230 @@
+---
+// "Me mostra um comando": sorteia um comando a cada clique no dado.
+import { todosComandos, urlComando } from '../lib/comandos';
+import { ROTULO_NIVEL } from '../lib/schema-comandos';
+
+// Comando inicial (fixo no HTML): o resto vem de /comandos.json no primeiro clique.
+const inicial = (await todosComandos()).find((c) => c.id === 'git-stash')!;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<section class="sorteio not-content" data-sorteio={`${base}/comandos.json`} aria-labelledby="sorteio-titulo">
+  <div class="topo">
+    <h3 id="sorteio-titulo">Comando aleatório</h3>
+    <button type="button" class="dado" data-sortear aria-label="Sortear outro comando">
+      <span aria-hidden="true">🎲</span>
+    </button>
+  </div>
+  <div class="conteudo" aria-live="polite">
+    <div class="linha-cmd">
+      <code data-campo="comando">{inicial.comando}</code>
+      <button type="button" class="copiar" data-copiar aria-label="Copiar comando">
+        Copiar
+      </button>
+    </div>
+    <p data-campo="descricao">{inicial.descricao}</p>
+    <div class="selos">
+      <span class="selo" data-campo="tecnologia" data-tec={inicial.tecnologia}>
+        {inicial.tecnologia}
+      </span>
+      <span class="selo" data-campo="nivel">
+        {ROTULO_NIVEL[inicial.nivel]}
+      </span>
+      <span class="selo perigo" data-campo="destrutivo" hidden={!inicial.destrutivo}>
+        ⚠ destrutivo
+      </span>
+    </div>
+    <a class="ver" data-campo="url" href={urlComando(inicial)}>
+      Ver na referência →
+    </a>
+  </div>
+</section>
+
+<script>
+  const ROTULO: Record<string, string> = {
+    basico: 'Básico',
+    intermediario: 'Intermediário',
+    avancado: 'Avançado',
+  };
+  type Comando = {
+    id: string;
+    comando: string;
+    descricao: string;
+    tecnologia: string;
+    nivel: string;
+    destrutivo: boolean;
+    url: string;
+  };
+
+  for (const secao of document.querySelectorAll<HTMLElement>('[data-sorteio]')) {
+    let comandos: Comando[] | undefined;
+    let atual = secao.querySelector('[data-campo="comando"]')!.textContent;
+    const campo = (nome: string) => secao.querySelector<HTMLElement>(`[data-campo="${nome}"]`)!;
+    const dado = secao.querySelector<HTMLButtonElement>('[data-sortear]')!;
+
+    dado.addEventListener('click', async () => {
+      dado.classList.remove('girando');
+      void dado.offsetWidth;
+      dado.classList.add('girando');
+      comandos ??= await fetch(secao.dataset.sorteio!).then((r) => r.json());
+      let c: Comando;
+      do c = comandos![Math.floor(Math.random() * comandos!.length)];
+      while (c.comando === atual && comandos!.length > 1);
+      atual = c.comando;
+      const conteudo = secao.querySelector<HTMLElement>('.conteudo')!;
+      conteudo.classList.remove('troca');
+      void conteudo.offsetWidth;
+      conteudo.classList.add('troca');
+      campo('comando').textContent = c.comando;
+      campo('descricao').textContent = c.descricao;
+      campo('tecnologia').textContent = c.tecnologia;
+      campo('tecnologia').dataset.tec = c.tecnologia;
+      campo('nivel').textContent = ROTULO[c.nivel] ?? c.nivel;
+      campo('destrutivo').hidden = !c.destrutivo;
+      (campo('url') as HTMLAnchorElement).href = c.url;
+    });
+
+    const copiar = secao.querySelector<HTMLButtonElement>('[data-copiar]')!;
+    copiar.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(campo('comando').textContent ?? '');
+        copiar.textContent = 'Copiado!';
+      } catch {
+        copiar.textContent = 'Não deu :(';
+      }
+      setTimeout(() => (copiar.textContent = 'Copiar'), 1500);
+    });
+  }
+</script>
+
+<style>
+  .sorteio {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    height: 100%;
+    padding: 1.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1.1rem;
+    background: var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+  }
+  .topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  h3 {
+    margin: 0;
+    font-size: var(--sl-text-xl);
+    color: var(--sl-color-white);
+  }
+  .dado {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.8rem;
+    background: var(--dg-superficie-2);
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition:
+      transform var(--dg-transicao),
+      border-color var(--dg-transicao);
+  }
+  .dado:hover {
+    border-color: var(--sl-color-accent);
+    transform: rotate(-10deg);
+  }
+  .girando span {
+    display: inline-block;
+    animation: rolar 600ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  @keyframes rolar {
+    from {
+      transform: rotate(0) scale(0.6);
+    }
+    to {
+      transform: rotate(720deg) scale(1);
+    }
+  }
+  .troca {
+    animation: dg-surgir 300ms ease;
+  }
+  .conteudo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    flex: 1;
+  }
+  .linha-cmd {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 0.6rem;
+    background: #0d0f1a;
+  }
+  .linha-cmd code {
+    flex: 1;
+    color: #e7e9f5;
+    font-family: var(--dg-mono);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }
+  .linha-cmd code::before {
+    content: '$ ';
+    color: #c084fc;
+  }
+  .copiar {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 0.4rem;
+    background: transparent;
+    color: #e7e9f5;
+    font-size: var(--sl-text-xs);
+    cursor: pointer;
+  }
+  .copiar:hover {
+    background: rgb(255 255 255 / 0.1);
+  }
+  p {
+    margin: 0;
+    color: var(--sl-color-gray-2);
+  }
+  .selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .selo {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+  .selo[hidden] {
+    display: none;
+  }
+  .selo[data-tec='git'] {
+    background: color-mix(in srgb, var(--dg-git) 20%, transparent);
+  }
+  .selo[data-tec='docker'] {
+    background: color-mix(in srgb, var(--dg-docker) 20%, transparent);
+  }
+  .perigo {
+    background: var(--sl-color-red-low);
+    color: var(--sl-color-red-high);
+    text-transform: none;
+  }
+  .ver {
+    margin-top: auto;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+  }
+</style>

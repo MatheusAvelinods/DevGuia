@@ -1,0 +1,183 @@
+---
+// Terminal "fake" que digita comandos reais tirados dos YAML.
+// - prefers-reduced-motion: mostra as linhas prontas, sem animação.
+// - leitores de tela: recebem uma lista estática equivalente.
+import { buscarComando } from '../lib/comandos';
+
+interface Props {
+  ids: string[];
+}
+
+const comandos = await Promise.all(Astro.props.ids.map((id) => buscarComando(id)));
+const linhas = comandos.map((c) => ({
+  comando: c.comando,
+  comentario: c.descricao,
+  tecnologia: c.tecnologia,
+}));
+---
+
+<figure class="terminal not-content" data-terminal={JSON.stringify(linhas)}>
+  <div class="barra" aria-hidden="true">
+    <span class="bolinha vermelha"></span>
+    <span class="bolinha amarela"></span>
+    <span class="bolinha verde"></span>
+    <span class="titulo">~/meu-projeto</span>
+  </div>
+  <div class="tela" aria-hidden="true">
+    {linhas.slice(0, 3).map((l) => (
+      <div class="linha">
+        <span class="prompt">$</span> <span class="cmd">{l.comando}</span>
+        <div class="saida"># {l.comentario}</div>
+      </div>
+    ))}
+  </div>
+  <figcaption class="sr-only">
+    Exemplos de comandos do guia:
+    <ul>
+      {linhas.map((l) => (
+        <li>
+          <code>{l.comando}</code>: {l.comentario}
+        </li>
+      ))}
+    </ul>
+  </figcaption>
+</figure>
+
+<script>
+  type Linha = { comando: string; comentario: string; tecnologia: string };
+  const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  for (const fig of document.querySelectorAll<HTMLElement>('[data-terminal]')) {
+    const linhas: Linha[] = JSON.parse(fig.dataset.terminal!);
+    const tela = fig.querySelector<HTMLElement>('.tela')!;
+    const semMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (semMovimento) continue; // fica com as 3 primeiras linhas, estáticas
+
+    let pausado = false;
+    fig.addEventListener('mouseenter', () => (pausado = true));
+    fig.addEventListener('mouseleave', () => (pausado = false));
+
+    const novaLinha = (tec: string) => {
+      const div = document.createElement('div');
+      div.className = 'linha';
+      div.dataset.tec = tec;
+      div.innerHTML = '<span class="prompt">$</span> <span class="cmd"></span><span class="cursor"></span>';
+      tela.append(div);
+      while (tela.children.length > 4) tela.firstElementChild!.remove();
+      return div;
+    };
+
+    (async () => {
+      // As 3 primeiras linhas já vêm do servidor; a animação continua a partir da 4ª.
+      for (let i = 3 % linhas.length; ; i = (i + 1) % linhas.length) {
+        const { comando, comentario, tecnologia } = linhas[i];
+        const div = novaLinha(tecnologia);
+        const alvo = div.querySelector<HTMLElement>('.cmd')!;
+        for (const letra of comando) {
+          while (pausado) await esperar(120);
+          alvo.textContent += letra;
+          await esperar(28 + Math.random() * 45);
+        }
+        await esperar(350);
+        div.querySelector('.cursor')?.remove();
+        const saida = document.createElement('div');
+        saida.className = 'saida';
+        saida.textContent = `# ${comentario}`;
+        div.append(saida);
+        await esperar(1600);
+      }
+    })();
+  }
+</script>
+
+<style>
+  .terminal {
+    margin: 0;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #0d0f1a;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    box-shadow:
+      0 30px 60px -25px rgb(0 0 0 / 0.65),
+      0 0 0 1px rgb(139 92 246 / 0.15),
+      0 0 80px -20px rgb(139 92 246 / 0.45);
+    font-family: var(--dg-mono);
+    font-size: 0.85rem;
+    color: #e7e9f5;
+    transform: rotate(0.6deg);
+    transition: transform 400ms ease;
+  }
+  .terminal:hover {
+    transform: rotate(0deg) translateY(-3px);
+  }
+  .barra {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 0.9rem;
+    background: #161929;
+    border-bottom: 1px solid rgb(255 255 255 / 0.06);
+  }
+  .bolinha {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+  }
+  .vermelha {
+    background: #ff5f57;
+  }
+  .amarela {
+    background: #febc2e;
+  }
+  .verde {
+    background: #28c840;
+  }
+  .titulo {
+    margin-inline: auto;
+    padding-inline-end: 2rem;
+    color: #8a8fa8;
+    font-size: 0.75rem;
+  }
+  .tela {
+    min-height: 15.5rem;
+    padding: 1rem 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.85rem;
+  }
+  .tela :global(.linha) {
+    animation: dg-surgir 250ms ease both;
+    overflow-wrap: anywhere;
+  }
+  .tela :global(.prompt) {
+    color: #c084fc;
+    font-weight: 700;
+  }
+  .tela :global(.linha[data-tec='git'] .prompt) {
+    color: #ff8a6b;
+  }
+  .tela :global(.linha[data-tec='docker'] .prompt) {
+    color: #5cb8ff;
+  }
+  .tela :global(.saida) {
+    margin-top: 0.25rem;
+    color: #8a8fa8;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+  .tela :global(.cursor) {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    margin-inline-start: 1px;
+    vertical-align: text-bottom;
+    background: #e7e9f5;
+    animation: piscar 1s steps(1) infinite;
+  }
+  @keyframes piscar {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>

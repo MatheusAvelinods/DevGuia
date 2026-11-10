@@ -1,0 +1,348 @@
+/* ==========================================================================
+   DevGuia — tema visual
+   Cores por trilha: Git = laranja, Docker = azul, geral = violeta.
+   Todas as cores de texto passam no contraste WCAG AA nos dois temas.
+   ========================================================================== */
+
+:root {
+  /* Só fontes do sistema (nenhum download): títulos arredondados no Apple (ui-rounded),
+     Segoe UI Variable Display no Windows e a sans do sistema nos demais. Fontes web
+     custavam ~0,4 s de LCP no 4G simulado, acima da meta de 1,5 s do PRD (RNF01). */
+  --dg-font-titulo:
+    ui-rounded, 'SF Pro Rounded', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --dg-mono:
+    ui-monospace, SFMono-Regular, 'Cascadia Code', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+  --dg-raio: 0.9rem;
+  --dg-raio-sm: 0.55rem;
+  --dg-transicao: 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  --dg-git: #f05133;
+  --dg-docker: #2496ed;
+  --dg-violeta: #8b5cf6;
+  --dg-rosa: #ec4899;
+  --dg-gradiente: linear-gradient(120deg, #8b5cf6 0%, #ec4899 55%, #f97316 100%);
+
+  /* Tema escuro (padrão do Starlight): fundo azul-noite em vez de cinza puro */
+  --sl-color-accent-low: #2a1f5c;
+  --sl-color-accent: #8b5cf6;
+  --sl-color-accent-high: #d6c8ff;
+  --sl-color-white: #ffffff;
+  --sl-color-gray-1: #eceef6;
+  --sl-color-gray-2: #c4c7d6;
+  --sl-color-gray-3: #9095ad;
+  --sl-color-gray-4: #555a73;
+  --sl-color-gray-5: #333850;
+  --sl-color-gray-6: #1c1f31;
+  --sl-color-black: #11131f;
+
+  --dg-sombra: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  --dg-sombra-hover: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 18px 40px -14px rgb(0 0 0 / 0.75);
+  --dg-superficie: #171a2a;
+  --dg-superficie-2: #1f2337;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #ede8ff;
+  --sl-color-accent: #6d28d9;
+  --sl-color-accent-high: #3b1585;
+  --sl-color-white: #12131c;
+  --sl-color-gray-1: #24263a;
+  --sl-color-gray-2: #3c3f57;
+  --sl-color-gray-3: #5c607a;
+  --sl-color-gray-4: #8c90a8;
+  --sl-color-gray-5: #c9ccdb;
+  --sl-color-gray-6: #eef0f7;
+  --sl-color-gray-7: #f6f7fb;
+  --sl-color-black: #ffffff;
+
+  --dg-sombra: 0 1px 2px rgb(20 20 50 / 0.06), 0 10px 28px -14px rgb(40 30 90 / 0.25);
+  --dg-sombra-hover: 0 2px 4px rgb(20 20 50 / 0.06), 0 18px 40px -16px rgb(40 30 90 / 0.35);
+  --dg-superficie: #ffffff;
+  --dg-superficie-2: #f6f7fb;
+}
+
+/* --- Cor de destaque por trilha (aplicada pelo PageFrame em data-trilha) --- */
+[data-trilha='git'] {
+  --sl-color-accent-low: #3d1a12;
+  --sl-color-accent: #f05133;
+  --sl-color-accent-high: #ffc4b3;
+  --dg-trilha: var(--dg-git);
+}
+[data-trilha='docker'] {
+  --sl-color-accent-low: #0f2a45;
+  --sl-color-accent: #2496ed;
+  --sl-color-accent-high: #b3dcff;
+  --dg-trilha: var(--dg-docker);
+}
+:root[data-theme='light'] [data-trilha='git'] {
+  --sl-color-accent-low: #ffe8e1;
+  --sl-color-accent: #c2410c;
+  --sl-color-accent-high: #7c2d12;
+}
+:root[data-theme='light'] [data-trilha='docker'] {
+  --sl-color-accent-low: #e0f0ff;
+  --sl-color-accent: #0b63b6;
+  --sl-color-accent-high: #0b3a6b;
+}
+
+/* --- Tipografia --- */
+h1,
+h2,
+h3,
+h4,
+.site-title,
+.sl-markdown-content :is(h1, h2, h3, h4),
+:is(.hero, .dg-titulo) {
+  font-family: var(--dg-font-titulo);
+  letter-spacing: -0.02em;
+}
+.sl-markdown-content h2 {
+  font-weight: 750;
+}
+h1#_top {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+/* --- Fundo com brilho suave --- */
+body {
+  background:
+    radial-gradient(
+      60rem 30rem at 85% -10%,
+      color-mix(in srgb, var(--sl-color-accent) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50rem 26rem at -10% 20%,
+      color-mix(in srgb, var(--dg-rosa) 7%, transparent),
+      transparent 70%
+    ),
+    var(--sl-color-black);
+  background-attachment: fixed;
+}
+.header,
+.sidebar-pane {
+  backdrop-filter: blur(12px);
+}
+.header {
+  background-color: color-mix(in srgb, var(--sl-color-black) 78%, transparent);
+}
+@media (min-width: 50em) {
+  .sidebar-pane {
+    background-color: color-mix(in srgb, var(--sl-color-black) 55%, transparent);
+  }
+}
+
+/* --- Título do site --- */
+.site-title {
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: var(--sl-color-white);
+  gap: 0.6rem;
+}
+.site-title img {
+  height: 2.1rem;
+  width: auto;
+  transition: transform var(--dg-transicao);
+}
+.site-title:hover img {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+/* --- Barra lateral: itens com cara de botão --- */
+.sidebar-content a {
+  border-radius: var(--dg-raio-sm);
+  transition:
+    background-color var(--dg-transicao),
+    color var(--dg-transicao),
+    transform var(--dg-transicao);
+}
+.sidebar-content a:hover {
+  background-color: var(--sl-color-gray-6);
+  transform: translateX(2px);
+}
+.sidebar-content a[aria-current='page'] {
+  background: var(--sl-color-accent);
+  color: #fff;
+  font-weight: 600;
+}
+:root[data-theme='light'] .sidebar-content a[aria-current='page'] {
+  color: #fff;
+}
+
+/* --- Busca --- */
+site-search button[data-open-modal] {
+  border-radius: 999px;
+  transition:
+    border-color var(--dg-transicao),
+    box-shadow var(--dg-transicao);
+}
+site-search button[data-open-modal]:hover {
+  border-color: var(--sl-color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sl-color-accent) 25%, transparent);
+}
+
+/* --- Conteúdo --- */
+.sl-markdown-content a:not(:where(.not-content *)) {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-thickness var(--dg-transicao);
+}
+.sl-markdown-content a:not(:where(.not-content *)):hover {
+  text-decoration-thickness: 2px;
+}
+.sl-markdown-content :not(pre) > code {
+  border-radius: 0.35rem;
+  padding: 0.1em 0.35em;
+}
+.sl-markdown-content table {
+  border-radius: var(--dg-raio-sm);
+  overflow: hidden;
+}
+
+/* Cartões do Starlight (Card / LinkCard) com movimento */
+.card,
+.sl-link-card {
+  border-radius: var(--dg-raio);
+  box-shadow: var(--dg-sombra);
+  transition:
+    transform var(--dg-transicao),
+    box-shadow var(--dg-transicao),
+    border-color var(--dg-transicao);
+}
+.sl-link-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--dg-sombra-hover);
+  border-color: var(--sl-color-accent);
+}
+
+/* Avisos (Aside) arredondados */
+.starlight-aside {
+  border-radius: var(--dg-raio-sm);
+}
+
+/* Blocos de código (Expressive Code) */
+.expressive-code .frame {
+  border-radius: var(--dg-raio-sm);
+}
+
+/* Passos numerados com a cor da trilha */
+.sl-steps > li::before {
+  background-color: var(--sl-color-accent) !important;
+  color: #fff !important;
+  font-family: var(--dg-font-titulo);
+  font-weight: 700;
+  box-shadow: none !important;
+}
+
+/* Paginação anterior/próximo */
+.pagination-links a {
+  border-radius: var(--dg-raio);
+  box-shadow: var(--dg-sombra);
+  transition:
+    transform var(--dg-transicao),
+    border-color var(--dg-transicao);
+}
+.pagination-links a:hover {
+  transform: translateY(-2px);
+  border-color: var(--sl-color-accent);
+}
+
+/* Foco visível e consistente */
+:focus-visible {
+  outline: 2px solid var(--sl-color-text-accent);
+  outline-offset: 2px;
+}
+
+/* Botões utilitários usados nos componentes interativos */
+.dg-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  background: var(--dg-superficie);
+  color: var(--sl-color-white);
+  font: 600 var(--sl-text-sm) / 1.2 var(--sl-font);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform var(--dg-transicao),
+    border-color var(--dg-transicao),
+    background-color var(--dg-transicao),
+    box-shadow var(--dg-transicao);
+}
+.dg-botao:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-1px);
+}
+.dg-botao:active {
+  transform: translateY(1px) scale(0.98);
+}
+.dg-botao[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.dg-botao--primario {
+  border-color: transparent;
+  background: var(--sl-color-accent);
+  color: #fff;
+}
+.dg-botao--primario:hover {
+  box-shadow: 0 8px 22px -8px var(--sl-color-accent);
+}
+
+/* Animação de entrada usada pelos componentes */
+@keyframes dg-surgir {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dg-pulo {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+@keyframes dg-brilho {
+  from {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+  }
+}
+
+/* Quem prefere menos movimento não recebe animações nem transições */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Duas colunas na página inicial (comando aleatório + modo treino) */
+.dg-dupla {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+[data-has-hero] .sl-markdown-content h2 {
+  margin-top: 3rem;
+  font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+}

@@ -16,6 +16,18 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'DevGuia',
+      logo: { src: './src/assets/logo.svg', alt: '' },
+      customCss: ['./src/styles/tema.css'],
+      components: {
+        PageFrame: './src/components/overrides/PageFrame.astro',
+        Hero: './src/components/overrides/Hero.astro',
+        Footer: './src/components/overrides/Footer.astro',
+      },
+      expressiveCode: {
+        styleOverrides: {
+          borderRadius: '0.55rem',
+        },
+      },
       description:
         'Guia em PT-BR de comandos Git, Docker e mais: tutoriais, referência rápida e cheat sheet.',
       defaultLocale: 'root',
@@ -42,6 +54,7 @@ export default defineConfig({
             { label: 'Referência', link: '/docker/referencia/' },
           ],
         },
+        { label: '🎮 Modo Treino', link: '/treino/' },
         { label: 'Sobre', link: '/sobre/' },
       ],
     }),
