@@ -89,22 +89,44 @@ const varianteNivel = { basico: 'success', intermediario: 'note', avancado: 'tip
 
 <style>
   .cmd {
-    border: 1px solid var(--sl-color-hairline);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
+    position: relative;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    padding: 0.9rem;
     margin-block: 1rem;
-    background: var(--sl-color-bg);
+    background: var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+    transition:
+      transform var(--dg-transicao),
+      box-shadow var(--dg-transicao),
+      border-color var(--dg-transicao);
+  }
+  .cmd:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dg-sombra-hover);
+    border-color: color-mix(in srgb, var(--sl-color-accent) 55%, var(--sl-color-gray-5));
   }
   .cmd-titulo {
     scroll-margin-top: calc(var(--sl-nav-height) + 1.5rem);
   }
   .cmd[data-destrutivo='sim'] {
-    border-color: var(--sl-color-red);
-    border-inline-start-width: 4px;
+    border-color: color-mix(in srgb, var(--sl-color-red) 70%, transparent);
+    padding-inline-start: 1.35rem;
+    overflow: hidden;
+  }
+  /* faixa listrada de "perigo" na lateral dos destrutivos */
+  .cmd[data-destrutivo='sim']::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 0.45rem;
+    background: repeating-linear-gradient(-45deg, #facc15 0 6px, #1a1a1a 6px 12px);
   }
   .cmd:has(.cmd-titulo:target) {
     outline: 2px solid var(--sl-color-accent);
-    outline-offset: 2px;
+    outline-offset: 3px;
+    animation: dg-brilho 1.2s ease-out;
   }
   .cmd-desc {
     margin: 0.6rem 0 0.4rem;
@@ -117,8 +139,8 @@ const varianteNivel = { basico: 'success', intermediario: 'note', avancado: 'tip
   }
   .cmd-aviso {
     margin: 0.6rem 0 0;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.25rem;
+    padding: 0.55rem 0.8rem;
+    border-radius: var(--dg-raio-sm);
     background: var(--sl-color-red-low);
     color: var(--sl-color-red-high);
     font-size: var(--sl-text-sm);
