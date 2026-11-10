@@ -1,0 +1,66 @@
+---
+// Faixa de números da página inicial.
+import { todasTrilhas } from '../lib/trilhas';
+
+const trilhas = await todasTrilhas();
+const comandos = trilhas.reduce((n, t) => n + t.totalComandos, 0);
+const capitulos = trilhas.reduce(
+  (n, t) => n + t.capitulos.filter((c) => !c.id.endsWith('/tutorial')).length,
+  0,
+);
+const destrutivos = trilhas.reduce((n, t) => n + t.totalDestrutivos, 0);
+const itens = [
+  { numero: comandos, rotulo: 'comandos prontos para copiar', emoji: '📋' },
+  { numero: capitulos, rotulo: 'capítulos de tutorial', emoji: '📚' },
+  { numero: destrutivos, rotulo: 'comandos perigosos sinalizados', emoji: '⚠️' },
+  { numero: 0, rotulo: 'cookies, contas ou anúncios', emoji: '🔒' },
+];
+---
+
+<ul class="destaques not-content">
+  {itens.map((i) => (
+    <li>
+      <span class="emoji" aria-hidden="true">
+        {i.emoji}
+      </span>
+      <strong>{i.numero}</strong>
+      <span>{i.rotulo}</span>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .destaques {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 0.75rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background: var(--dg-superficie);
+  }
+  .emoji {
+    grid-row: span 2;
+    font-size: 1.6rem;
+  }
+  strong {
+    font-family: var(--dg-font-titulo);
+    font-size: var(--sl-text-2xl);
+    line-height: 1.1;
+    color: var(--sl-color-white);
+  }
+  li span:last-child {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+</style>

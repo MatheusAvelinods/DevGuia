@@ -1,0 +1,22 @@
+---
+// Envolve a página padrão do Starlight e aplica a cor da trilha (Git, Docker…)
+// via data-trilha, usado pelas variáveis de cor em src/styles/tema.css.
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+import { trilhaDaUrl } from '../../lib/trilhas';
+
+const trilha = await trilhaDaUrl(Astro.url.pathname);
+---
+
+<div data-trilha={trilha} class="dg-trilha">
+  <Default>
+    <slot name="header" slot="header" />
+    <slot name="sidebar" slot="sidebar" />
+    <slot />
+  </Default>
+</div>
+
+<style>
+  .dg-trilha {
+    display: contents;
+  }
+</style>

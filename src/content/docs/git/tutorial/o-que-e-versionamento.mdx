@@ -7,6 +7,7 @@ sidebar:
 
 import AreasGit from '../../../../components/AreasGit.astro';
 import Dica from '../../../../components/Dica.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** entender o problema que o Git resolve e o vocabulário básico
 (repositório, commit, branch) antes de digitar qualquer comando.
@@ -75,6 +76,19 @@ Requests, issues e CI. Dá para usar Git sem GitHub; o contrário não.
   registra no histórico.
 - **Achar que commit envia para o GitHub.** Não envia: o commit é local. Quem
   envia é o `git push`.
+
+## Teste rápido
+
+<Quiz
+  pergunta="Você salvou o arquivo no editor. A mudança já está no histórico do Git?"
+  opcoes={[
+    'Sim, o Git grava sozinho a cada salvamento',
+    'Não: ela só entra no histórico depois de `git add` e `git commit`',
+    'Só se o arquivo estiver no `.gitignore`',
+  ]}
+  correta={1}
+  explicacao="Salvar só altera o arquivo no diretório de trabalho. O `git add` leva a mudança ao staging e o `git commit` grava no histórico."
+/>
 
 ## Resumo
 

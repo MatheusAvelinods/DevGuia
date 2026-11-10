@@ -1,0 +1,57 @@
+---
+// Convite para o Modo Treino na página inicial.
+const href = `${import.meta.env.BASE_URL}treino/`;
+---
+
+<a class="chamada not-content" href={href}>
+  <span class="emoji" aria-hidden="true">
+    🎮
+  </span>
+  <span class="titulo">Modo Treino</span>
+  <span class="texto">
+    Leia o que o comando faz e escolha qual é. Acumule pontos, faça sequências 🔥 e bata o seu recorde.
+  </span>
+  <span class="dg-botao dg-botao--primario">Jogar agora →</span>
+</a>
+
+<style>
+  .chamada {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    height: 100%;
+    padding: 1.5rem;
+    border-radius: 1.1rem;
+    /* tons escuros do degradê da marca: texto branco com contraste AA em todo o cartão */
+    background: linear-gradient(120deg, #6d28d9 0%, #be185d 55%, #c2410c 100%);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 18px 40px -18px rgb(139 92 246 / 0.7);
+    transition: transform var(--dg-transicao);
+  }
+  .chamada:hover {
+    transform: translateY(-4px) rotate(-0.4deg);
+  }
+  .emoji {
+    font-size: 2.4rem;
+    transition: transform var(--dg-transicao);
+  }
+  .chamada:hover .emoji {
+    transform: rotate(-12deg) scale(1.1);
+  }
+  .titulo {
+    font-family: var(--dg-font-titulo);
+    font-size: var(--sl-text-2xl);
+    font-weight: 700;
+  }
+  .texto {
+    color: rgb(255 255 255 / 0.92);
+  }
+  .dg-botao {
+    align-self: flex-start;
+    margin-top: auto;
+    background: rgb(0 0 0 / 0.28);
+    border-color: rgb(255 255 255 / 0.35);
+    color: #fff;
+  }
+</style>

@@ -9,19 +9,17 @@ import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
+import CicloContainer from '../../../../components/CicloContainer.astro';
 
 **Objetivo:** subir um servidor web num container, acessá-lo pelo navegador e
 dominar o ciclo de vida: criar, inspecionar, parar e remover.
 
 ## Conceito
 
-Um container passa por estados:
+Um container passa por estados. Experimente — grave arquivos, remova o container e veja o que acontece com e sem volume:
 
-```text
-docker run ──► rodando ──docker stop──► parado ──docker rm──► (removido)
-                  ▲                        │
-                  └──────docker start──────┘
-```
+<CicloContainer />
 
 Um container **parado** ainda existe: guarda a configuração e os arquivos que
 gravou. Só o `docker rm` apaga de vez.
@@ -93,6 +91,15 @@ Para testar algo rapidinho, um terminal descartável:
   `-p 8080:80` publica a porta em **todas** as interfaces de rede da máquina. Em um notebook numa rede pública
   ou num servidor, prefira `-p 127.0.0.1:8080:80` para aceitar só conexões locais.
 </Aviso>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Em `docker run -p 8080:80 nginx`, qual endereço você abre no navegador?"
+  opcoes={['`http://localhost:80`', '`http://localhost:8080`', 'Os dois funcionam']}
+  correta={1}
+  explicacao="Em `-p host:container`, o primeiro número é a porta da sua máquina (8080); o segundo, a do container (80)."
+/>
 
 ## Resumo
 

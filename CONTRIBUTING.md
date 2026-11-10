@@ -63,6 +63,7 @@ Componentes disponíveis:
 
 ```mdx
 import ComandoRef from '../../../../components/ComandoRef.astro';
+import Quiz from '../../../../components/Quiz.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
 import { Steps } from '@astrojs/starlight/components';
@@ -72,6 +73,9 @@ import { Steps } from '@astrojs/starlight/components';
 <Aviso>texto em amarelo</Aviso>
 <Aviso destrutivo>texto em vermelho</Aviso>
 ```
+
+Todo capítulo termina com uma seção `## Teste rápido` (um `<Quiz>`) antes do `## Resumo`.
+Trechos entre crases nas opções viram código.
 
 Links internos levam a base do site: `/DevGuia/git/referencia/#desfazer`.
 

@@ -1,0 +1,681 @@
+---
+// Modo Treino: um jogo de "qual é o comando?" montado a partir dos mesmos YAML.
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getCollection } from 'astro:content';
+
+const tecnologias = (await getCollection('tecnologias')).sort((a, b) => a.data.ordem - b.data.ordem);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Modo Treino',
+    description: 'Jogo para fixar comandos de Git e Docker: leia o que o comando faz e escolha qual é.',
+    tableOfContents: false,
+  }}
+>
+  <p>
+    Leia o que o comando faz e escolha qual é. São 10 perguntas por rodada; acertos seguidos formam uma
+    sequência 🔥 que vale pontos extras. Dá para jogar só com o teclado: teclas <kbd>1</kbd> a <kbd>4</kbd>{' '}
+    para responder e <kbd>Enter</kbd> para avançar.
+  </p>
+
+  <div class="treino not-content" data-treino={`${base}/comandos.json`}>
+    <noscript>
+      <p class="aviso-js">O Modo Treino precisa de JavaScript ativado.</p>
+    </noscript>
+
+    <!-- Tela 1: configuração -->
+    <form class="tela config" data-tela="config">
+      <fieldset>
+        <legend>Trilha</legend>
+        <div class="pilulas">
+          <label>
+            <input type="radio" name="trilha" value="todas" checked />
+            <span>Todas</span>
+          </label>
+          {tecnologias.map((t) => (
+            <label>
+              <input type="radio" name="trilha" value={t.id} />
+              <span>{t.data.nome}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Nível</legend>
+        <div class="pilulas">
+          <label>
+            <input type="radio" name="nivel" value="todos" checked />
+            <span>Todos</span>
+          </label>
+          <label>
+            <input type="radio" name="nivel" value="basico" />
+            <span>🌱 Básico</span>
+          </label>
+          <label>
+            <input type="radio" name="nivel" value="intermediario" />
+            <span>🌿 Intermediário</span>
+          </label>
+          <label>
+            <input type="radio" name="nivel" value="avancado" />
+            <span>🌳 Avançado</span>
+          </label>
+        </div>
+      </fieldset>
+      <p class="recorde" data-recorde></p>
+      <button type="submit" class="dg-botao dg-botao--primario grande">
+        Começar rodada ▶
+      </button>
+    </form>
+
+    <!-- Tela 2: pergunta -->
+    <section class="tela jogo" data-tela="jogo" hidden aria-labelledby="pergunta-titulo">
+      <div class="placar">
+        <span data-pergunta-n>Pergunta 1/10</span>
+        <span class="sequencia" data-sequencia title="Acertos seguidos">
+          🔥 0
+        </span>
+        <span class="pontos" data-pontos>
+          0 pts
+        </span>
+      </div>
+      <div class="trilha-progresso" aria-hidden="true" data-pontinhos></div>
+      <h2 id="pergunta-titulo" class="pergunta-rotulo">
+        Qual comando…
+      </h2>
+      <p class="descricao" data-descricao></p>
+      <div class="opcoes" data-opcoes role="group" aria-label="Opções de resposta"></div>
+      <div class="retorno" data-retorno aria-live="polite"></div>
+      <button type="button" class="dg-botao dg-botao--primario" data-proxima hidden>
+        Próxima →
+      </button>
+    </section>
+
+    <!-- Tela 3: resultado -->
+    <section class="tela fim" data-tela="fim" hidden aria-labelledby="fim-titulo">
+      <div class="trofeu" data-trofeu aria-hidden="true">
+        🏆
+      </div>
+      <h2 id="fim-titulo" data-fim-titulo>
+        Fim de rodada!
+      </h2>
+      <p class="nota" data-nota></p>
+      <p data-novo-recorde hidden class="novo-recorde">
+        ⭐ Novo recorde!
+      </p>
+      <div class="revisar" data-revisar></div>
+      <div class="acoes">
+        <button type="button" class="dg-botao dg-botao--primario" data-de-novo>
+          Jogar de novo
+        </button>
+        <button type="button" class="dg-botao" data-mudar>
+          Mudar trilha ou nível
+        </button>
+      </div>
+    </section>
+  </div>
+</StarlightPage>
+
+<script>
+  import { lerProgresso, registrarRecorde } from '../scripts/progresso';
+
+  type Comando = {
+    id: string;
+    comando: string;
+    descricao: string;
+    tecnologia: string;
+    categoria: string;
+    nivel: string;
+    destrutivo: boolean;
+    url: string;
+  };
+  type Pergunta = { certo: Comando; opcoes: Comando[] };
+
+  const RODADA = 10;
+  const raiz = document.querySelector<HTMLElement>('[data-treino]');
+
+  const embaralhar = <T,>(lista: T[]) => {
+    const a = [...lista];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+
+  if (raiz) {
+    const $ = <T extends HTMLElement>(sel: string) => raiz.querySelector<T>(sel)!;
+    const telas = raiz.querySelectorAll<HTMLElement>('[data-tela]');
+    const mostrar = (nome: string) => telas.forEach((t) => (t.hidden = t.dataset.tela !== nome));
+    const form = $<HTMLFormElement>('[data-tela="config"]');
+
+    let todos: Comando[] = [];
+    let perguntas: Pergunta[] = [];
+    let indice = 0;
+    let pontos = 0;
+    let sequencia = 0;
+    let acertos = 0;
+    let respondida = false;
+    let erros: Comando[] = [];
+
+    const modo = () => {
+      const dados = new FormData(form);
+      return { trilha: String(dados.get('trilha')), nivel: String(dados.get('nivel')) };
+    };
+    const chaveModo = () => `${modo().trilha}:${modo().nivel}`;
+
+    const mostrarRecorde = () => {
+      const r = lerProgresso().recordes[chaveModo()];
+      $('[data-recorde]').textContent = r
+        ? `🏅 Seu recorde neste modo: ${r} pts`
+        : 'Ainda sem recorde neste modo.';
+    };
+    form.addEventListener('change', mostrarRecorde);
+    mostrarRecorde();
+
+    const montarRodada = () => {
+      const { trilha, nivel } = modo();
+      const elegiveis = todos.filter(
+        (c) => (trilha === 'todas' || c.tecnologia === trilha) && (nivel === 'todos' || c.nivel === nivel),
+      );
+      return embaralhar(elegiveis)
+        .slice(0, RODADA)
+        .map((certo) => {
+          // Distratores parecidos: mesma tecnologia, de preferência a mesma categoria.
+          const mesmaTec = todos.filter(
+            (c) => c.tecnologia === certo.tecnologia && c.comando !== certo.comando,
+          );
+          const mesmaCat = embaralhar(mesmaTec.filter((c) => c.categoria === certo.categoria));
+          const outros = embaralhar(mesmaTec.filter((c) => c.categoria !== certo.categoria));
+          const distratores: Comando[] = [];
+          for (const c of [...mesmaCat.slice(0, 2), ...outros]) {
+            if (distratores.length === 3) break;
+            if (!distratores.some((d) => d.comando === c.comando)) distratores.push(c);
+          }
+          return { certo, opcoes: embaralhar([certo, ...distratores]) };
+        });
+    };
+
+    const desenharPontinhos = () => {
+      const caixa = $('[data-pontinhos]');
+      caixa.replaceChildren(
+        ...perguntas.map((_, i) => {
+          const s = document.createElement('span');
+          if (i < indice) s.className = erros.includes(perguntas[i].certo) ? 'erro' : 'certo';
+          if (i === indice) s.className = 'atual';
+          return s;
+        }),
+      );
+    };
+
+    const desenharPergunta = () => {
+      respondida = false;
+      const p = perguntas[indice];
+      $('[data-pergunta-n]').textContent = `Pergunta ${indice + 1}/${perguntas.length}`;
+      $('[data-descricao]').textContent = p.certo.descricao;
+      $('[data-retorno]').replaceChildren();
+      $('[data-proxima]').hidden = true;
+      const opcoes = $('[data-opcoes]');
+      opcoes.replaceChildren(
+        ...p.opcoes.map((c, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'opcao';
+          b.innerHTML = `<kbd>${i + 1}</kbd><code></code>`;
+          b.querySelector('code')!.textContent = c.comando;
+          b.addEventListener('click', () => responder(i));
+          return b;
+        }),
+      );
+      desenharPontinhos();
+      opcoes.querySelector('button')?.focus({ preventScroll: true });
+    };
+
+    const responder = (i: number) => {
+      if (respondida) return;
+      respondida = true;
+      const p = perguntas[indice];
+      const escolhida = p.opcoes[i];
+      const certo = escolhida.comando === p.certo.comando;
+      const botoes = [...$('[data-opcoes]').querySelectorAll<HTMLButtonElement>('button')];
+      botoes.forEach((b, j) => {
+        b.disabled = true;
+        if (p.opcoes[j].comando === p.certo.comando) b.classList.add('correta');
+        else if (j === i) b.classList.add('errada');
+      });
+      const retorno = $('[data-retorno]');
+      if (certo) {
+        acertos++;
+        sequencia++;
+        const ganho = 10 + Math.min(sequencia - 1, 5) * 2;
+        pontos += ganho;
+        retorno.innerHTML = `<strong class="ok">Acertou! +${ganho} pts</strong>`;
+      } else {
+        sequencia = 0;
+        erros.push(p.certo);
+        retorno.innerHTML = '<strong class="nao">Quase!</strong> ';
+        retorno.append(`A resposta era `);
+        const code = document.createElement('code');
+        code.textContent = p.certo.comando;
+        retorno.append(code, '.');
+      }
+      if (p.certo.destrutivo) {
+        const aviso = document.createElement('p');
+        aviso.className = 'perigo';
+        aviso.textContent = '⚠ Este comando é destrutivo — leia o aviso na referência antes de usar.';
+        retorno.append(aviso);
+      }
+      const link = document.createElement('a');
+      link.href = p.certo.url;
+      link.textContent = 'Ver na referência →';
+      link.target = '_blank';
+      retorno.append(' ', link);
+
+      const seq = $('[data-sequencia]');
+      seq.textContent = `🔥 ${sequencia}`;
+      seq.classList.toggle('quente', sequencia >= 3);
+      seq.classList.remove('pulo');
+      void seq.offsetWidth;
+      if (certo) seq.classList.add('pulo');
+      $('[data-pontos]').textContent = `${pontos} pts`;
+      const proxima = $<HTMLButtonElement>('[data-proxima]');
+      proxima.hidden = false;
+      proxima.textContent = indice + 1 < perguntas.length ? 'Próxima →' : 'Ver resultado 🏁';
+      proxima.focus({ preventScroll: true });
+    };
+
+    const terminar = () => {
+      mostrar('fim');
+      const total = perguntas.length;
+      const taxa = acertos / total;
+      const [emoji, frase] =
+        taxa === 1
+          ? ['🏆', 'Gabaritou! Você é a pessoa que todo mundo chama quando o Git dá ruim.']
+          : taxa >= 0.7
+            ? ['🥇', 'Mandou muito bem! Mais uma rodada para gabaritar?']
+            : taxa >= 0.4
+              ? ['💪', 'Bom começo! Revise os comandos abaixo e tente de novo.']
+              : ['🌱', 'Todo mundo começa assim. Dá uma olhada nos tutoriais e volte aqui!'];
+      $('[data-trofeu]').textContent = emoji;
+      $('[data-fim-titulo]').textContent = `${acertos} de ${total} acertos`;
+      $('[data-nota]').textContent = `${pontos} pontos. ${frase}`;
+      $('[data-novo-recorde]').hidden = !registrarRecorde(chaveModo(), pontos);
+      const revisar = $('[data-revisar]');
+      revisar.replaceChildren();
+      if (erros.length) {
+        const h = document.createElement('h3');
+        h.textContent = 'Para revisar';
+        const ul = document.createElement('ul');
+        for (const c of erros) {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = c.url;
+          const code = document.createElement('code');
+          code.textContent = c.comando;
+          a.append(code);
+          li.append(a, ` — ${c.descricao}`);
+          ul.append(li);
+        }
+        revisar.append(h, ul);
+      }
+      $<HTMLButtonElement>('[data-de-novo]').focus();
+    };
+
+    const comecar = async () => {
+      if (!todos.length) todos = await fetch(raiz.dataset.treino!).then((r) => r.json());
+      perguntas = montarRodada();
+      if (perguntas.length < 4) {
+        $('[data-recorde]').textContent = 'Poucos comandos nesse filtro. Escolha outra combinação.';
+        return;
+      }
+      indice = pontos = sequencia = acertos = 0;
+      erros = [];
+      $('[data-sequencia]').textContent = '🔥 0';
+      $('[data-sequencia]').classList.remove('quente');
+      $('[data-pontos]').textContent = '0 pts';
+      mostrar('jogo');
+      desenharPergunta();
+      $('[data-tela="jogo"]').scrollIntoView({ block: 'nearest' });
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      comecar();
+    });
+    $('[data-proxima]').addEventListener('click', () => {
+      indice++;
+      if (indice < perguntas.length) desenharPergunta();
+      else terminar();
+    });
+    $('[data-de-novo]').addEventListener('click', comecar);
+    $('[data-mudar]').addEventListener('click', () => {
+      mostrarRecorde();
+      mostrar('config');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if ($('[data-tela="jogo"]').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+      const alvo = e.target as HTMLElement;
+      if (alvo.matches('input, textarea, [contenteditable]')) return;
+      const n = Number(e.key);
+      if (n >= 1 && n <= 4 && !respondida) {
+        e.preventDefault();
+        responder(n - 1);
+      }
+    });
+  }
+</script>
+
+<style>
+  .treino {
+    margin-top: 1.5rem;
+  }
+  .aviso-js {
+    padding: 1rem;
+    border-radius: var(--dg-raio);
+    background: var(--sl-color-gray-6);
+  }
+  .tela {
+    padding: clamp(1.1rem, 4vw, 2rem);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1.2rem;
+    background:
+      radial-gradient(
+        30rem 14rem at 100% 0%,
+        color-mix(in srgb, var(--dg-violeta) 16%, transparent),
+        transparent 70%
+      ),
+      var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+    animation: dg-surgir 300ms ease;
+  }
+  .tela[hidden] {
+    display: none;
+  }
+  fieldset {
+    margin: 0 0 1.25rem;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    margin-bottom: 0.6rem;
+    font-family: var(--dg-font-titulo);
+    font-weight: 700;
+    font-size: var(--sl-text-lg);
+    color: var(--sl-color-white);
+  }
+  .pilulas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .pilulas label {
+    position: relative;
+  }
+  .pilulas input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+  .pilulas span {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--dg-superficie-2);
+    color: var(--sl-color-gray-2);
+    font-weight: 600;
+    transition:
+      background-color var(--dg-transicao),
+      border-color var(--dg-transicao),
+      color var(--dg-transicao),
+      transform var(--dg-transicao);
+  }
+  .pilulas label:hover span {
+    border-color: var(--sl-color-accent);
+  }
+  .pilulas input:checked + span {
+    border-color: transparent;
+    background: var(--sl-color-accent);
+    color: #fff;
+    transform: scale(1.04);
+  }
+  .pilulas input:focus-visible + span {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+  .recorde {
+    margin: 0 0 1.25rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+  .grande {
+    padding: 0.8rem 1.6rem;
+    font-size: var(--sl-text-base);
+  }
+  .placar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 600;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+  }
+  .placar .pontos {
+    margin-inline-start: auto;
+    font-family: var(--dg-font-titulo);
+    font-size: var(--sl-text-lg);
+    color: var(--sl-color-white);
+  }
+  .sequencia {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+  }
+  .sequencia.quente {
+    background: linear-gradient(90deg, #f97316, #ef4444);
+    color: #fff;
+  }
+  .pulo {
+    animation: dg-pulo 400ms ease;
+  }
+  .trilha-progresso {
+    display: flex;
+    gap: 0.3rem;
+    margin: 0.9rem 0 1.4rem;
+  }
+  .trilha-progresso :global(span) {
+    flex: 1;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-5);
+    transition: background-color var(--dg-transicao);
+  }
+  .trilha-progresso :global(.certo) {
+    background: #22c55e;
+  }
+  .trilha-progresso :global(.erro) {
+    background: #ef4444;
+  }
+  .trilha-progresso :global(.atual) {
+    background: var(--sl-color-accent);
+  }
+  .pergunta-rotulo {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+  }
+  .descricao {
+    margin: 0.4rem 0 1.4rem;
+    font-family: var(--dg-font-titulo);
+    font-size: clamp(1.2rem, 3vw, 1.55rem);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--sl-color-white);
+  }
+  .opcoes {
+    display: grid;
+    gap: 0.65rem;
+  }
+  .opcoes :global(.opcao) {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.8rem;
+    background: var(--dg-superficie-2);
+    color: var(--sl-color-white);
+    text-align: start;
+    font: inherit;
+    cursor: pointer;
+    transition:
+      transform var(--dg-transicao),
+      border-color var(--dg-transicao),
+      background-color var(--dg-transicao);
+  }
+  .opcoes :global(.opcao:hover:not(:disabled)) {
+    transform: translateX(4px);
+    border-color: var(--sl-color-accent);
+  }
+  .opcoes :global(.opcao:disabled) {
+    cursor: default;
+    opacity: 0.65;
+  }
+  .opcoes :global(.opcao code) {
+    font-family: var(--dg-mono);
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+  }
+  .opcoes :global(.opcao kbd) {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.7rem;
+    height: 1.7rem;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.4rem;
+    font-size: var(--sl-text-xs);
+    font-family: var(--dg-mono);
+    color: var(--sl-color-gray-2);
+  }
+  .opcoes :global(:is(.correta, .errada)) {
+    opacity: 1 !important;
+    border-width: 2px;
+    padding: calc(0.85rem - 1px) calc(1rem - 1px);
+  }
+  .opcoes :global(:is(.correta, .errada))::after {
+    margin-inline-start: auto;
+    font-weight: 800;
+    font-size: 1.2rem;
+  }
+  .opcoes :global(.correta)::after {
+    content: '✓';
+    color: #22c55e;
+  }
+  .opcoes :global(.errada)::after {
+    content: '✗';
+    color: #ef4444;
+  }
+  .opcoes :global(.correta) {
+    border-color: #22c55e;
+    background: color-mix(in srgb, #22c55e 18%, var(--dg-superficie-2));
+    animation: dg-pulo 400ms ease;
+  }
+  .opcoes :global(.errada) {
+    border-color: #ef4444;
+    background: color-mix(in srgb, #ef4444 16%, var(--dg-superficie-2));
+    animation: tremer 350ms ease;
+  }
+  @keyframes tremer {
+    20%,
+    60% {
+      transform: translateX(-5px);
+    }
+    40%,
+    80% {
+      transform: translateX(5px);
+    }
+  }
+  .retorno {
+    min-height: 1.5rem;
+    margin: 1.1rem 0;
+    color: var(--sl-color-gray-2);
+  }
+  .retorno :global(.ok) {
+    color: #22c55e;
+  }
+  :global([data-theme='light']) .retorno :global(.ok) {
+    color: #15803d;
+  }
+  .retorno :global(.nao) {
+    color: var(--sl-color-red-high);
+  }
+  .retorno :global(code) {
+    font-family: var(--dg-mono);
+  }
+  .retorno :global(a) {
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+  }
+  .retorno :global(.perigo) {
+    margin: 0.5rem 0 0;
+    color: var(--sl-color-red-high);
+    font-size: var(--sl-text-sm);
+  }
+  .fim {
+    text-align: center;
+  }
+  .trofeu {
+    font-size: 4rem;
+    animation: dg-pulo 600ms ease;
+  }
+  .fim h2 {
+    margin: 0.3rem 0;
+    font-size: var(--sl-text-3xl);
+    color: var(--sl-color-white);
+  }
+  .nota {
+    color: var(--sl-color-gray-2);
+  }
+  .novo-recorde {
+    display: inline-block;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #facc15, #f97316);
+    color: #1a1a1a;
+    font-weight: 700;
+    animation: dg-pulo 500ms ease;
+  }
+  .novo-recorde[hidden] {
+    display: none;
+  }
+  .revisar {
+    margin: 1.5rem auto;
+    max-width: 40rem;
+    text-align: start;
+  }
+  .revisar :global(h3) {
+    font-size: var(--sl-text-lg);
+    color: var(--sl-color-white);
+  }
+  .revisar :global(li) {
+    margin: 0.4rem 0;
+    color: var(--sl-color-gray-2);
+  }
+  .revisar :global(a) {
+    color: var(--sl-color-text-accent);
+  }
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+</style>

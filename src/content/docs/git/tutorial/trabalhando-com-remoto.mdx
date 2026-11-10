@@ -9,6 +9,7 @@ import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** publicar seu repositório no GitHub e manter local e remoto
 sincronizados.
@@ -100,6 +101,19 @@ git pull                              # integra quando estiver pronto
   `git config --global pull.rebase true` evita aqueles commits "Merge branch 'main' of github.com…" no
   histórico. O [capítulo 7](/DevGuia/git/tutorial/rebase-e-historico-limpo/) explica o rebase.
 </Dica>
+
+## Teste rápido
+
+<Quiz
+  pergunta="Qual a diferença entre `git fetch` e `git pull`?"
+  opcoes={[
+    'Nenhuma, são sinônimos',
+    '`fetch` envia commits; `pull` recebe',
+    '`fetch` só baixa as novidades; `pull` baixa e integra na sua branch',
+  ]}
+  correta={2}
+  explicacao="`git pull` é `fetch` + merge (ou rebase). O `fetch` sozinho deixa você olhar antes de integrar."
+/>
 
 ## Resumo
 

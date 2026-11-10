@@ -9,6 +9,7 @@ import { Steps } from '@astrojs/starlight/components';
 import ComandoRef from '../../../../components/ComandoRef.astro';
 import Dica from '../../../../components/Dica.astro';
 import Aviso from '../../../../components/Aviso.astro';
+import Quiz from '../../../../components/Quiz.astro';
 
 **Objetivo:** fazer um banco de dados sobreviver à remoção do container e saber
 quando usar volume nomeado ou bind mount.
@@ -117,6 +118,15 @@ docker run --rm -v dados-pg:/dados -v "$(pwd)":/backup alpine \
 </Aviso>
 
 <ComandoRef id="docker-volume-rm" />
+
+## Teste rápido
+
+<Quiz
+  pergunta="Você rodou `docker rm` no container do banco de dados. Os dados sobrevivem?"
+  opcoes={['Sim, sempre', 'Só se estavam guardados em um volume', 'Não, nunca']}
+  correta={1}
+  explicacao="A camada de escrita do container é apagada com ele. Dados em um volume continuam lá para o próximo container."
+/>
 
 ## Resumo
 

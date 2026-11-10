@@ -1,0 +1,203 @@
+---
+// Cartões das trilhas na página inicial, com o progresso salvo no navegador.
+import { todasTrilhas } from '../lib/trilhas';
+
+const trilhas = await todasTrilhas();
+const icones: Record<string, string> = { git: '🌿', docker: '🐳' };
+---
+
+<div class="trilhas not-content">
+  {trilhas.map((t) => {
+    const capitulos = t.capitulos.filter((c) => !c.id.endsWith('/tutorial'));
+    return (
+      <article
+        class="trilha"
+        data-trilha={t.id}
+        data-capitulos={JSON.stringify(capitulos.map((c) => [c.id, c.href]))}
+      >
+        <div class="cabeca">
+          <span class="icone" aria-hidden="true">
+            {icones[t.id] ?? '📦'}
+          </span>
+          <div>
+            <h3>{t.nome}</h3>
+            <p class="numeros">
+              {capitulos.length} capítulos · {t.totalComandos} comandos
+            </p>
+          </div>
+        </div>
+        <p class="descricao">{t.descricao}</p>
+        <div class="progresso">
+          <div
+            class="barra"
+            role="progressbar"
+            aria-label={`Progresso na trilha ${t.nome}`}
+            aria-valuemin="0"
+            aria-valuemax={capitulos.length}
+            aria-valuenow="0"
+          >
+            <span />
+          </div>
+          <span class="rotulo" data-rotulo>
+            Comece pelo capítulo 1
+          </span>
+        </div>
+        <div class="acoes">
+          <a class="dg-botao dg-botao--primario" href={t.hrefTutorial} data-continuar>
+            Começar trilha
+          </a>
+          <a class="dg-botao" href={t.hrefReferencia}>
+            Referência
+          </a>
+        </div>
+      </article>
+    );
+  })}
+</div>
+
+<script>
+  import { EVENTO_PROGRESSO, lerProgresso } from '../scripts/progresso';
+
+  const atualizar = () => {
+    const { capitulos: feitos } = lerProgresso();
+    for (const card of document.querySelectorAll<HTMLElement>('.trilha[data-capitulos]')) {
+      const capitulos: [string, string][] = JSON.parse(card.dataset.capitulos!);
+      const total = capitulos.filter(([id]) => feitos[id]).length;
+      const barra = card.querySelector<HTMLElement>('.barra')!;
+      barra.setAttribute('aria-valuenow', String(total));
+      barra.querySelector('span')!.style.width = `${(total / capitulos.length) * 100}%`;
+      const rotulo = card.querySelector('[data-rotulo]')!;
+      const continuar = card.querySelector<HTMLAnchorElement>('[data-continuar]')!;
+      const proximo = capitulos.find(([id]) => !feitos[id]);
+      if (total === 0) continue;
+      if (proximo) {
+        rotulo.textContent = `${total} de ${capitulos.length} capítulos concluídos`;
+        continuar.textContent = 'Continuar de onde parei';
+        continuar.href = proximo[1];
+      } else {
+        rotulo.textContent = '🏆 Trilha completa!';
+        continuar.textContent = 'Revisar a trilha';
+      }
+    }
+  };
+  document.addEventListener(EVENTO_PROGRESSO, atualizar);
+  atualizar();
+</script>
+
+<style>
+  .trilhas {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  }
+  .trilha {
+    --cor: var(--dg-violeta);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1.1rem;
+    background:
+      radial-gradient(
+        24rem 12rem at 110% -20%,
+        color-mix(in srgb, var(--cor) 22%, transparent),
+        transparent 70%
+      ),
+      var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+    overflow: hidden;
+    transition:
+      transform var(--dg-transicao),
+      box-shadow var(--dg-transicao),
+      border-color var(--dg-transicao);
+  }
+  .trilha[data-trilha='git'] {
+    --cor: var(--dg-git);
+  }
+  .trilha[data-trilha='docker'] {
+    --cor: var(--dg-docker);
+  }
+  .trilha:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--dg-sombra-hover);
+    border-color: color-mix(in srgb, var(--cor) 60%, transparent);
+  }
+  .cabeca {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  .icone {
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--cor) 18%, transparent);
+    font-size: 1.7rem;
+    transition: transform var(--dg-transicao);
+  }
+  .trilha:hover .icone {
+    transform: rotate(-8deg) scale(1.08);
+  }
+  h3 {
+    margin: 0;
+    font-size: var(--sl-text-2xl);
+    color: var(--sl-color-white);
+  }
+  .numeros {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .descricao {
+    margin: 0;
+    color: var(--sl-color-gray-2);
+  }
+  .progresso {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: auto;
+  }
+  .barra {
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    overflow: hidden;
+  }
+  .barra span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--cor);
+    transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .rotulo {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .acoes .dg-botao--primario {
+    background: var(--cor);
+  }
+  :global([data-theme='light']) .trilha[data-trilha='git'] .dg-botao--primario {
+    background: #c2410c;
+  }
+  :global([data-theme='light']) .trilha[data-trilha='docker'] .dg-botao--primario {
+    background: #0b63b6;
+  }
+  :global([data-theme='dark']) .trilha[data-trilha='docker'] .dg-botao--primario {
+    background: #0b63b6;
+  }
+  :global([data-theme='dark']) .trilha[data-trilha='git'] .dg-botao--primario {
+    background: #c2410c;
+  }
+</style>

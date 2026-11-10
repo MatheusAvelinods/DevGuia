@@ -1,0 +1,320 @@
+---
+// Ciclo de vida de um container, interativo: run, stop, start, rm — e o que
+// acontece com os dados com e sem volume. Sem JavaScript, fica o diagrama em texto.
+---
+
+<figure class="ciclo not-content" data-ciclo>
+  <pre
+    class="estatico"
+    aria-label="Ciclo de vida de um container"
+  >docker run ──► rodando ──docker stop──► parado ──docker rm──► (removido)
+                  ▲                        │
+                  └──────docker start──────┘</pre>
+
+  <div class="interativo" data-interativo hidden>
+    <div class="estados" aria-hidden="true">
+      <span data-estado="nenhum">nenhum</span>
+      <span class="seta">→</span>
+      <span data-estado="rodando">rodando</span>
+      <span class="seta">⇄</span>
+      <span data-estado="parado">parado</span>
+      <span class="seta">→</span>
+      <span data-estado="removido">removido</span>
+    </div>
+
+    <div class="caixa" data-caixa>
+      <div class="baleia" aria-hidden="true">
+        🐳
+      </div>
+      <div>
+        <p class="nome">
+          <code>web</code>{' '}
+          <span class="status" data-status>
+            não existe
+          </span>
+        </p>
+        <p class="arquivos">
+          Arquivos gravados: <strong data-arquivos>0</strong>{' '}
+          <span class="onde" data-onde>
+            (na camada do container)
+          </span>
+        </p>
+      </div>
+    </div>
+
+    <label class="volume">
+      <input type="checkbox" data-volume />
+      Montar um volume (<code>-v dados:/dados</code>)
+    </label>
+
+    <div class="botoes">
+      <button type="button" class="cmd" data-acao="run">
+        <code>docker run</code>
+      </button>
+      <button type="button" class="cmd" data-acao="gravar">
+        📝 gravar arquivo
+      </button>
+      <button type="button" class="cmd" data-acao="stop">
+        <code>docker stop</code>
+      </button>
+      <button type="button" class="cmd" data-acao="start">
+        <code>docker start</code>
+      </button>
+      <button type="button" class="cmd perigo" data-acao="rm">
+        <code>docker rm</code>
+      </button>
+    </div>
+    <p class="narracao" data-narracao aria-live="polite">
+      Ainda não existe container. Aperte <code>docker run</code> para criar um.
+    </p>
+  </div>
+</figure>
+
+<script>
+  for (const fig of document.querySelectorAll<HTMLElement>('[data-ciclo]')) {
+    fig.querySelector<HTMLElement>('.estatico')!.hidden = true;
+    fig.querySelector<HTMLElement>('[data-interativo]')!.hidden = false;
+
+    type Estado = 'nenhum' | 'rodando' | 'parado' | 'removido';
+    let estado: Estado = 'nenhum';
+    let arquivos = 0;
+    let noVolume = 0;
+    const volume = fig.querySelector<HTMLInputElement>('[data-volume]')!;
+    const $ = (s: string) => fig.querySelector<HTMLElement>(s)!;
+    const narrar = (html: string) => ($('[data-narracao]').innerHTML = html);
+
+    const desenhar = () => {
+      for (const s of fig.querySelectorAll<HTMLElement>('[data-estado]'))
+        s.classList.toggle('atual', s.dataset.estado === estado);
+      $('[data-status]').textContent = {
+        nenhum: 'não existe',
+        rodando: 'rodando',
+        parado: 'parado',
+        removido: 'removido',
+      }[estado];
+      $('[data-status]').dataset.estado = estado;
+      $('[data-caixa]').dataset.estado = estado;
+      $('[data-arquivos]').textContent = String(volume.checked ? noVolume : arquivos);
+      $('[data-onde]').textContent = volume.checked ? '(no volume "dados")' : '(na camada do container)';
+      volume.disabled = estado === 'rodando' || estado === 'parado';
+      const pode: Record<string, boolean> = {
+        run: estado === 'nenhum' || estado === 'removido',
+        gravar: estado === 'rodando',
+        stop: estado === 'rodando',
+        start: estado === 'parado',
+        rm: estado === 'parado',
+      };
+      for (const b of fig.querySelectorAll<HTMLButtonElement>('[data-acao]'))
+        b.disabled = !pode[b.dataset.acao!];
+    };
+
+    const acoes: Record<string, () => void> = {
+      run() {
+        estado = 'rodando';
+        arquivos = 0;
+        narrar(
+          volume.checked && noVolume
+            ? `Container novo criado, montando o mesmo volume: os <strong>${noVolume}</strong> arquivos continuam lá! 🎉`
+            : 'Container criado e rodando. Grave alguns arquivos nele.',
+        );
+      },
+      gravar() {
+        if (volume.checked) noVolume++;
+        else arquivos++;
+        narrar(
+          volume.checked
+            ? 'Arquivo gravado no volume — fora do container.'
+            : 'Arquivo gravado na camada de escrita do container.',
+        );
+      },
+      stop() {
+        estado = 'parado';
+        narrar(
+          'Container parado. Ele ainda existe e os arquivos continuam lá — <code>docker start</code> retoma de onde parou.',
+        );
+      },
+      start() {
+        estado = 'rodando';
+        narrar('Rodando de novo, com os mesmos arquivos.');
+      },
+      rm() {
+        estado = 'removido';
+        if (volume.checked) {
+          narrar(
+            `Container removido, mas os ${noVolume} arquivos estão salvos no volume. Rode <code>docker run</code> de novo com o volume.`,
+          );
+        } else {
+          const perdidos = arquivos;
+          arquivos = 0;
+          narrar(
+            perdidos
+              ? `💥 Container removido e ${perdidos === 1 ? 'o arquivo gravado se perdeu' : `os ${perdidos} arquivos gravados se perderam`}. Tente de novo marcando "Montar um volume".`
+              : 'Container removido. Como nada foi gravado, nada se perdeu.',
+          );
+        }
+      },
+    };
+
+    fig.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-acao]');
+      if (!b) return;
+      acoes[b.dataset.acao!]();
+      desenhar();
+    });
+    volume.addEventListener('change', desenhar);
+    desenhar();
+  }
+</script>
+
+<style>
+  .ciclo {
+    margin-block: 1.5rem;
+  }
+  .estatico {
+    margin: 0;
+    padding: 1rem;
+    border-radius: var(--dg-raio-sm);
+    background: var(--sl-color-gray-6);
+    font-family: var(--dg-mono);
+    font-size: var(--sl-text-xs);
+    overflow-x: auto;
+  }
+  .estatico[hidden],
+  .interativo[hidden] {
+    display: none;
+  }
+  .interativo {
+    padding: 1.1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background: var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+  }
+  .estados {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    color: var(--sl-color-gray-3);
+  }
+  .estados [data-estado] {
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    transition:
+      background-color var(--dg-transicao),
+      color var(--dg-transicao);
+  }
+  .estados .atual {
+    background: var(--sl-color-accent);
+    color: #fff;
+  }
+  .caixa {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--sl-color-gray-5);
+    border-radius: 0.8rem;
+    background: var(--dg-superficie-2);
+    transition:
+      border-color var(--dg-transicao),
+      opacity var(--dg-transicao);
+  }
+  .caixa[data-estado='rodando'] {
+    border-color: #22c55e;
+  }
+  .caixa[data-estado='parado'] {
+    border-color: #facc15;
+  }
+  .caixa[data-estado='removido'],
+  .caixa[data-estado='nenhum'] {
+    border-style: dashed;
+    opacity: 0.7;
+  }
+  .baleia {
+    font-size: 2.2rem;
+  }
+  .caixa[data-estado='rodando'] .baleia {
+    animation: nadar 1.6s ease-in-out infinite;
+  }
+  @keyframes nadar {
+    50% {
+      transform: translateY(-4px) rotate(-4deg);
+    }
+  }
+  .nome,
+  .arquivos {
+    margin: 0;
+    color: var(--sl-color-gray-1);
+  }
+  .status {
+    margin-inline-start: 0.4rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+  }
+  .onde {
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  .volume {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  .volume input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--sl-color-accent);
+  }
+  .botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .cmd {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--dg-superficie-2);
+    color: var(--sl-color-white);
+    font: 600 var(--sl-text-sm) / 1.2 var(--sl-font);
+    cursor: pointer;
+    transition:
+      transform var(--dg-transicao),
+      border-color var(--dg-transicao);
+  }
+  .cmd code {
+    font-family: var(--dg-mono);
+    font-size: 0.85em;
+  }
+  .cmd:hover:not(:disabled) {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-1px);
+  }
+  .cmd.perigo:hover:not(:disabled) {
+    border-color: var(--sl-color-red);
+  }
+  .cmd:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .narracao {
+    min-height: 3rem;
+    margin: 0.8rem 0 0;
+    padding: 0.65rem 0.8rem;
+    border-radius: 0.6rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-1);
+    font-size: var(--sl-text-sm);
+  }
+</style>
