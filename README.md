@@ -10,6 +10,7 @@ com aviso quando ele é destrutivo.
 
 - **Trilhas de Git e Docker** — tutoriais curtos, cada capítulo com um teste rápido no fim
 - **Referência** — 150 comandos com botão de copiar, filtros por nível e aviso nos destrutivos
+- **Cheat sheet** 📄 — todos os comandos em uma página; baixe em PDF, Markdown ou HTML para usar offline
 - **Modo Treino** 🎮 — jogo de "qual é o comando?" com pontos, sequência de acertos e recorde
 - **Diagramas interativos** — aperte `git add`/`commit`/`push` e veja o arquivo andar entre as áreas;
   rode, pare e remova um container e veja o que acontece com os dados
@@ -32,7 +33,9 @@ com aviso quando ele é destrutivo.
 ```bash
 npm ci
 npm run dev          # http://localhost:4321/DevGuia/
-npm run build        # gera dist/
+npx playwright install chromium   # uma vez: navegador para gerar o PDF
+npm run build        # gera dist/ (site + cheat sheet .md/.html/.pdf)
+npm run build:site   # só o site, sem o PDF
 npm run lint         # ESLint + Prettier
 npm test             # schema, regras e verificador de links
 npm run check:links  # links e âncoras internos de dist/ (após o build)
@@ -58,7 +61,7 @@ docs/PRD.md          documento de requisitos
 - [x] **Fase 0 · Fundação** — Astro + Starlight, CI e deploy no Pages
 - [x] **Fase 1 · Git** — schema de comandos, componentes, tutorial (8 capítulos) e 74 comandos
 - [x] **Fase 2 · Docker** — tutorial (8 capítulos) e 76 comandos
-- [ ] **Fase 3 · Cheat sheet** — página única + downloads em PDF, Markdown e HTML
+- [x] **Fase 3 · Cheat sheet** — página única + downloads em PDF, Markdown e HTML → **v1.0**
 - [ ] **Fase 4 · Pós-MVP** — receitas, snippets de configuração, novas trilhas
 
 ## Contribuindo
