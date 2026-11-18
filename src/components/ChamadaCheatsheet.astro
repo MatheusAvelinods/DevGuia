@@ -1,0 +1,56 @@
+---
+// Faixa da página inicial convidando para a cheat sheet e os downloads.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<div class="faixa not-content">
+  <span class="emoji" aria-hidden="true">
+    📄
+  </span>
+  <div class="texto">
+    <strong>Cheat sheet: tudo em uma página</strong>
+    <span>Copie com um clique ou leve offline em PDF, Markdown ou HTML.</span>
+  </div>
+  <div class="acoes">
+    <a class="dg-botao dg-botao--primario" href={`${base}/cheatsheet/`}>
+      Abrir cheat sheet
+    </a>
+    <a class="dg-botao" href={`${base}/downloads/cheatsheet.pdf`} download>
+      Baixar PDF
+    </a>
+  </div>
+</div>
+
+<style>
+  .faixa {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px dashed var(--sl-color-gray-4);
+    border-radius: 1.1rem;
+    background: var(--dg-superficie);
+  }
+  .emoji {
+    font-size: 2.2rem;
+  }
+  .texto {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 16rem;
+  }
+  strong {
+    font-family: var(--dg-font-titulo);
+    font-size: var(--sl-text-xl);
+    color: var(--sl-color-white);
+  }
+  .texto span {
+    color: var(--sl-color-gray-2);
+  }
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+</style>
