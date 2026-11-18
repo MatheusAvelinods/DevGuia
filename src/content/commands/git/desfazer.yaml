@@ -60,6 +60,7 @@ comandos:
   - id: git-revert
     comando: git revert <commit>
     descricao: Cria um commit novo que desfaz as mudanças de um commit antigo, sem reescrever o histórico. Seguro em branches compartilhadas.
+    resumo: Desfaz um commit criando outro, sem reescrever o histórico — seguro em branches compartilhadas.
     exemplo: |
       git revert a1b2c3d
       git revert HEAD        # desfaz o último commit
