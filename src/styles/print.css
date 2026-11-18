@@ -1,0 +1,35 @@
+/* Impressão de qualquer página do site: cores claras, sem sombras e sem os
+   elementos que só fazem sentido na tela. Complementa o print.css do Starlight. */
+@media print {
+  :root,
+  :root[data-theme='light'],
+  [data-trilha] {
+    --dg-superficie: #fff;
+    --dg-superficie-2: #f6f6f6;
+    --dg-sombra: none;
+    --dg-sombra-hover: none;
+  }
+  body {
+    background: #fff;
+  }
+  .header {
+    backdrop-filter: none;
+    background: #fff;
+  }
+  /* Elementos de navegação e interação não vão para o papel */
+  .header,
+  .pagination-links,
+  .meta,
+  .concluir,
+  .sl-skip-link,
+  [data-painel],
+  .dg-botao,
+  site-search {
+    display: none !important;
+  }
+  .cmd,
+  .quiz,
+  .starlight-aside {
+    box-shadow: none !important;
+  }
+}

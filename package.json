@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/gerar-pdf.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
@@ -19,7 +19,9 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "count": "node scripts/contar-comandos.mjs --min git=60 --min docker=60",
     "lint": "eslint . && prettier --check .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "build:site": "astro build",
+    "pdf": "node scripts/gerar-pdf.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.42.8",

@@ -8,6 +8,7 @@ Obrigado por ajudar o DevGuia! Todo o conteúdo é em **português (PT-BR)**.
 git clone https://github.com/MatheusAvelinods/DevGuia.git
 cd DevGuia
 npm ci
+npx playwright install chromium   # uma vez: o build usa para gerar o PDF da cheat sheet
 npm run dev        # abre em http://localhost:4321/DevGuia/
 ```
 
@@ -37,6 +38,7 @@ e a cheat sheet.
   destrutivo: false # true se apaga dados ou reescreve histórico
   aviso: '...' # obrigatório quando destrutivo: o que se perde e como evitar
   cheatsheet: true # entra na cheat sheet (padrão: true)
+  resumo: '...' # opcional: texto da cheat sheet, se a 1ª frase da descrição não bastar
   tags: [commit, desfazer]
   relacionados: [git-reset-hard, git-revert] # ids de outros comandos
 ```

@@ -26,10 +26,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Navegador para gerar o cheatsheet.pdf
+      - run: npx playwright install --with-deps chromium
+      # astro build (site + cheatsheet.md/.html em dist/downloads/) + PDF via Playwright
       - run: npm run build
       - run: npm run check:links
       - run: npm test
-      # Fase 3: gerar cheatsheet.pdf/.md/.html e copiar para dist/downloads/.
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist

@@ -12,6 +12,7 @@ comandos:
   - id: docker-network-create
     comando: docker network create <nome>
     descricao: Cria uma rede bridge própria. Nela, os containers se encontram pelo nome (DNS interno), o que não acontece na rede bridge padrão.
+    resumo: Cria uma rede própria, onde os containers se encontram pelo nome.
     exemplo: |
       docker network create minha-rede
       docker run -d --name banco --network minha-rede -e POSTGRES_PASSWORD=segredo postgres:17

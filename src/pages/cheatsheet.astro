@@ -1,0 +1,511 @@
+---
+// Cheat sheet: todos os comandos com `cheatsheet: true` numa página densa.
+// A mesma página, com o CSS de impressão, vira o PDF (scripts/gerar-pdf.mjs).
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { montarCheatsheet, totalItens } from '../lib/cheatsheet';
+import { metaCheatsheet } from '../lib/cheatsheet-meta';
+
+const dados = await montarCheatsheet();
+const total = totalItens(dados);
+const meta = metaCheatsheet();
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const downloads = [
+  {
+    href: `${base}/downloads/cheatsheet.pdf`,
+    rotulo: 'Baixar PDF',
+    icone: '📄',
+    detalhe: 'A4, para imprimir',
+  },
+  {
+    href: `${base}/downloads/cheatsheet.md`,
+    rotulo: 'Baixar Markdown',
+    icone: '📝',
+    detalhe: 'para Obsidian ou repositório',
+  },
+  {
+    href: `${base}/downloads/cheatsheet.html`,
+    rotulo: 'Baixar HTML',
+    icone: '🌐',
+    detalhe: 'arquivo único, abre offline',
+  },
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Cheat Sheet',
+    description: `${total} comandos de Git e Docker em uma página: copie com um clique ou baixe em PDF, Markdown e HTML.`,
+    template: 'splash',
+    editUrl: false,
+  }}
+>
+  <div class="cheatsheet not-content" data-cheatsheet>
+    <p class="so-impressao cabecalho-impressao">
+      <strong>DevGuia — Cheat Sheet</strong> · {total} comandos · {meta.data} · {meta.url} · ⚠ = destrutivo
+    </p>
+
+    <p class="intro">
+      {total} comandos de {dados.map((t) => t.nome).join(' e ')} em uma página. Clique em um comando para
+      copiar; os marcados com <span class="perigo">⚠</span> são destrutivos — leia o aviso na referência antes
+      de usar.
+    </p>
+
+    <div class="downloads">
+      {downloads.map((d) => (
+        <a class="download" href={d.href} download>
+          <span class="icone" aria-hidden="true">
+            {d.icone}
+          </span>
+          <span>
+            <strong>{d.rotulo}</strong>
+            <small>{d.detalhe}</small>
+          </span>
+        </a>
+      ))}
+      <button type="button" class="download" data-imprimir>
+        <span class="icone" aria-hidden="true">
+          🖨️
+        </span>
+        <span>
+          <strong>Imprimir</strong>
+          <small>respeita os filtros abaixo</small>
+        </span>
+      </button>
+    </div>
+
+    <noscript>
+      <style>
+        [data-filtros-cs] {
+          display: none !important;
+        }
+      </style>
+    </noscript>
+    <form class="filtros" data-filtros-cs aria-label="Filtrar a cheat sheet">
+      <fieldset>
+        <legend>Trilha</legend>
+        <label>
+          <input type="radio" name="trilha" value="" checked />
+          <span>Todas</span>
+        </label>
+        {dados.map((t) => (
+          <label>
+            <input type="radio" name="trilha" value={t.id} />
+            <span>{t.nome}</span>
+          </label>
+        ))}
+      </fieldset>
+      <fieldset>
+        <legend>Nível</legend>
+        <label>
+          <input type="radio" name="nivel" value="" checked />
+          <span>Todos</span>
+        </label>
+        <label>
+          <input type="radio" name="nivel" value="basico" />
+          <span>Só básico</span>
+        </label>
+        <label>
+          <input type="radio" name="nivel" value="intermediario" />
+          <span>Até intermediário</span>
+        </label>
+      </fieldset>
+      <output data-contagem aria-live="polite">
+        {total} comandos
+      </output>
+    </form>
+
+    {dados.map((tec) => (
+      <section class="tecnologia" data-tec={tec.id} aria-labelledby={`cs-${tec.id}`}>
+        <h2 id={`cs-${tec.id}`} class="faixa">
+          {tec.nome}
+        </h2>
+        <div class="colunas">
+          {tec.categorias.map((cat) => (
+            <section class="categoria" data-categoria>
+              <h3>{cat.nome}</h3>
+              <ul>
+                {cat.itens.map((i) => (
+                  <li data-nivel={i.nivel}>
+                    <button type="button" class="cmd" data-copiar={i.comando} title="Clique para copiar">
+                      <code>{i.comando}</code>
+                      {i.destrutivo && (
+                        <span class="perigo" aria-label="destrutivo">
+                          ⚠
+                        </span>
+                      )}
+                    </button>
+                    <span class="resumo">{i.resumo}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </section>
+    ))}
+    <p class="vazio" data-vazio hidden>
+      Nenhum comando com esses filtros.
+    </p>
+    <div class="aviso-copia" data-aviso-copia role="status" aria-live="polite"></div>
+  </div>
+</StarlightPage>
+
+<script>
+  const raiz = document.querySelector<HTMLElement>('[data-cheatsheet]');
+  if (raiz) {
+    const form = raiz.querySelector<HTMLFormElement>('[data-filtros-cs]')!;
+    const contagem = raiz.querySelector('[data-contagem]')!;
+    const itens = [...raiz.querySelectorAll<HTMLElement>('li[data-nivel]')];
+    const ORDEM = ['basico', 'intermediario', 'avancado'];
+
+    const aplicar = () => {
+      const dados = new FormData(form);
+      const trilha = String(dados.get('trilha') ?? '');
+      const nivel = String(dados.get('nivel') ?? '');
+      const limite = nivel ? ORDEM.indexOf(nivel) : ORDEM.length;
+      let visiveis = 0;
+      for (const sec of raiz.querySelectorAll<HTMLElement>('section.tecnologia')) {
+        const tecOk = !trilha || sec.dataset.tec === trilha;
+        for (const li of sec.querySelectorAll<HTMLElement>('li[data-nivel]')) {
+          li.hidden = !tecOk || ORDEM.indexOf(li.dataset.nivel!) > limite;
+          if (!li.hidden) visiveis++;
+        }
+        for (const cat of sec.querySelectorAll<HTMLElement>('[data-categoria]')) {
+          cat.hidden = !cat.querySelector('li:not([hidden])');
+        }
+        sec.hidden = !sec.querySelector('li:not([hidden])');
+      }
+      contagem.textContent =
+        visiveis === itens.length ? `${itens.length} comandos` : `${visiveis} de ${itens.length} comandos`;
+      raiz.querySelector<HTMLElement>('[data-vazio]')!.hidden = visiveis > 0;
+    };
+    form.addEventListener('change', aplicar);
+
+    const aviso = raiz.querySelector<HTMLElement>('[data-aviso-copia]')!;
+    let timer: ReturnType<typeof setTimeout>;
+    raiz.addEventListener('click', async (e) => {
+      const botao = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-copiar]');
+      if (!botao) return;
+      try {
+        await navigator.clipboard.writeText(botao.dataset.copiar!);
+        aviso.textContent = `Copiado: ${botao.dataset.copiar}`;
+        botao.classList.remove('copiado');
+        void botao.offsetWidth;
+        botao.classList.add('copiado');
+      } catch {
+        aviso.textContent = 'Não foi possível copiar — selecione o texto manualmente.';
+      }
+      aviso.classList.add('visivel');
+      clearTimeout(timer);
+      timer = setTimeout(() => aviso.classList.remove('visivel'), 1800);
+    });
+
+    raiz.querySelector('[data-imprimir]')!.addEventListener('click', () => window.print());
+  }
+</script>
+
+<style>
+  .cheatsheet {
+    --cs-git: #c2410c;
+    --cs-docker: #0b63b6;
+  }
+  .so-impressao {
+    display: none;
+  }
+  .intro {
+    max-width: 48rem;
+    color: var(--sl-color-gray-2);
+  }
+  .perigo {
+    color: var(--sl-color-red-high);
+    font-weight: 700;
+  }
+  .downloads {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+  }
+  .download {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background: var(--dg-superficie);
+    box-shadow: var(--dg-sombra);
+    color: var(--sl-color-white);
+    font: inherit;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      transform var(--dg-transicao),
+      border-color var(--dg-transicao);
+  }
+  .download:hover {
+    transform: translateY(-2px);
+    border-color: var(--sl-color-accent);
+  }
+  .download .icone {
+    font-size: 1.6rem;
+  }
+  .download strong {
+    display: block;
+  }
+  .download small {
+    color: var(--sl-color-gray-3);
+  }
+  .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--dg-raio);
+    background: var(--dg-superficie);
+    font-size: var(--sl-text-sm);
+  }
+  fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    float: left;
+    margin-inline-end: 0.4rem;
+    font-weight: 700;
+    color: var(--sl-color-white);
+  }
+  .filtros label {
+    position: relative;
+  }
+  .filtros input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .filtros label span {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--dg-superficie-2);
+    color: var(--sl-color-gray-2);
+    font-weight: 600;
+  }
+  .filtros label:hover span {
+    border-color: var(--sl-color-accent);
+  }
+  .filtros input:checked + span {
+    border-color: transparent;
+    background: var(--sl-color-accent);
+    color: #fff;
+  }
+  .filtros input:focus-visible + span {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+  output {
+    margin-inline-start: auto;
+    color: var(--sl-color-gray-3);
+    font-weight: 600;
+  }
+  .tecnologia[hidden],
+  .categoria[hidden],
+  li[hidden],
+  .vazio[hidden] {
+    display: none;
+  }
+  .faixa {
+    margin: 2rem 0 1rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 0.6rem;
+    color: #fff;
+    font-size: var(--sl-text-2xl);
+  }
+  [data-tec='git'] .faixa {
+    background: var(--cs-git);
+  }
+  [data-tec='docker'] .faixa {
+    background: var(--cs-docker);
+  }
+  .colunas {
+    columns: 3 19rem;
+    column-gap: 1.75rem;
+  }
+  .categoria {
+    break-inside: avoid-column;
+    margin-bottom: 1.4rem;
+  }
+  h3 {
+    margin: 0 0 0.35rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid var(--sl-color-gray-5);
+    font-size: var(--sl-text-base);
+    color: var(--sl-color-white);
+  }
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--sl-color-gray-6);
+    break-inside: avoid;
+  }
+  .cmd {
+    /* inline-flex: os espaços em branco do HTML não viram um espaço antes do comando */
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: copy;
+  }
+  .cmd code {
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.35rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+    font-family: var(--dg-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    transition:
+      background-color var(--dg-transicao),
+      color var(--dg-transicao);
+  }
+  .cmd:hover code {
+    background: var(--sl-color-accent);
+    color: #fff;
+  }
+  .cmd:focus-visible {
+    outline: none;
+  }
+  .cmd:focus-visible code {
+    outline: 2px solid var(--sl-color-text-accent);
+    outline-offset: 2px;
+  }
+  .copiado code {
+    animation: dg-pulo 350ms ease;
+  }
+  .resumo {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    line-height: 1.4;
+  }
+  .aviso-copia {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 1.5rem;
+    width: fit-content;
+    max-width: calc(100% - 2rem);
+    margin-inline: auto;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    background: var(--sl-color-white);
+    color: var(--sl-color-black);
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(1rem);
+    pointer-events: none;
+    transition:
+      opacity var(--dg-transicao),
+      transform var(--dg-transicao);
+  }
+  .aviso-copia.visivel {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- Impressão e PDF: A4, duas colunas, cores claras ---------- */
+  @media print {
+    @page {
+      size: A4;
+      margin: 12mm 11mm 14mm;
+    }
+    .cheatsheet {
+      font-size: 8.5pt;
+      line-height: 1.35;
+    }
+    .so-impressao {
+      display: block;
+    }
+    .cabecalho-impressao {
+      margin: 0 0 3mm;
+      font-size: 9pt;
+    }
+    .intro,
+    .downloads,
+    .filtros,
+    .aviso-copia {
+      display: none !important;
+    }
+    .faixa {
+      margin: 4mm 0 2.5mm;
+      padding: 1mm 3mm;
+      font-size: 12pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      break-after: avoid;
+    }
+    /* sem sobras do layout do Starlight no fim (evita página em branco) */
+    :global(main),
+    :global(.content-panel),
+    :global(.sl-container) {
+      padding-bottom: 0 !important;
+      margin-bottom: 0 !important;
+    }
+    :global(h1#_top) {
+      font-size: 18pt;
+    }
+    .colunas {
+      columns: 2;
+      column-gap: 7mm;
+    }
+    .categoria {
+      margin-bottom: 3mm;
+      break-inside: auto;
+    }
+    h3 {
+      font-size: 9.5pt;
+      border-bottom-color: #bbb;
+      break-after: avoid;
+    }
+    li {
+      padding: 0.6mm 0;
+      border-bottom-color: #e5e5e5;
+    }
+    .cmd code {
+      padding: 0;
+      background: none;
+      color: #000;
+      font-size: 8pt;
+    }
+    .resumo {
+      color: #444;
+      font-size: 7.5pt;
+    }
+    .perigo {
+      color: #b91c1c;
+    }
+  }
+</style>

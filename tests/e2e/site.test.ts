@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { carregarCategorias } from '../../scripts/ler-comandos.mjs';
-import { servirDist } from './servidor';
+import { servirDist } from '../../scripts/servir-dist.mjs';
 
 if (!existsSync('dist/index.html')) {
   throw new Error('dist/ não encontrado — rode `npm run build` antes de `npm run test:e2e`.');
@@ -53,6 +53,7 @@ describe('páginas principais', () => {
     ['docker/tutorial/docker-compose/', '7. Docker Compose'],
     ['docker/referencia/', 'Referência de Docker'],
     ['treino/', 'Modo Treino'],
+    ['cheatsheet/', 'Cheat Sheet'],
   ])('/%s abre com o título "%s"', async (caminho, titulo) => {
     const resp = await page.goto(servidor.url + caminho);
     expect(resp?.status()).toBe(200);
@@ -159,6 +160,58 @@ describe('recursos interativos', () => {
     await expect(ciclo.locator('[data-narracao]').textContent()).resolves.toContain('se perdeu');
     expect(erros).toEqual([]);
     await ctx.close();
+  });
+});
+
+describe('cheat sheet e downloads', async () => {
+  const comandos = (await carregarCategorias('src/content/commands')).flatMap((c) => c.comandos);
+  const naCheatsheet = comandos.filter((c) => c.cheatsheet !== false);
+
+  it('a página lista todos os comandos da cheat sheet e os filtros funcionam', async () => {
+    await page.goto(servidor.url + 'cheatsheet/');
+    await expect(page.locator('li[data-nivel]').count()).resolves.toBe(naCheatsheet.length);
+    await page.getByRole('radio', { name: 'Git', exact: true }).check();
+    await page.getByRole('radio', { name: 'Só básico' }).check();
+    const visiveis = await page.locator('li[data-nivel]:visible').count();
+    const esperado = (await carregarCategorias('src/content/commands'))
+      .filter((c) => c.tecnologia === 'git')
+      .flatMap((c) => c.comandos)
+      .filter((c) => c.cheatsheet !== false && c.nivel === 'basico').length;
+    expect(visiveis).toBe(esperado);
+    await expect(page.locator('section.tecnologia[data-tec="docker"]').isHidden()).resolves.toBe(true);
+  });
+
+  it('clicar num comando copia o texto', async () => {
+    const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
+    const p = await ctx.newPage();
+    await p.goto(servidor.url + 'cheatsheet/');
+    await p.locator('[data-copiar="git status"]').click();
+    expect(await p.evaluate(() => navigator.clipboard.readText())).toBe('git status');
+    await expect(p.locator('[data-aviso-copia]').textContent()).resolves.toBe('Copiado: git status');
+    await ctx.close();
+  });
+
+  it('Markdown tem uma linha por comando', async () => {
+    const resp = await fetch(servidor.url + 'downloads/cheatsheet.md');
+    expect(resp.status).toBe(200);
+    const md = await resp.text();
+    const linhas = md.split('\n').filter((l) => /^\| `/.test(l));
+    expect(linhas).toHaveLength(naCheatsheet.length);
+  });
+
+  it('HTML é autocontido e tem todos os comandos', async () => {
+    const html = await (await fetch(servidor.url + 'downloads/cheatsheet.html')).text();
+    expect(html.match(/<li>/g)).toHaveLength(naCheatsheet.length);
+    expect(html).not.toMatch(/<(script|link|img)\b/i);
+  });
+
+  it('PDF existe, é válido e tem várias páginas', async () => {
+    const resp = await fetch(servidor.url + 'downloads/cheatsheet.pdf');
+    expect(resp.status).toBe(200);
+    const pdf = Buffer.from(await resp.arrayBuffer());
+    expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
+    const paginas = pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? [];
+    expect(paginas.length).toBeGreaterThan(1);
   });
 });
 

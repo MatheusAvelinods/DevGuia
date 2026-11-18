@@ -25,8 +25,10 @@ export const comandoSchema = z
     id: slug,
     /** Sintaxe principal, em uma linha. É o que o botão "copiar" copia. */
     comando: z.string().min(1),
-    /** Descrição curta (uma frase). Também usada na cheat sheet. */
+    /** Descrição curta. A primeira frase vai para a cheat sheet. */
     descricao: z.string().min(10).max(200),
+    /** Opcional: texto da cheat sheet quando a primeira frase da descrição não basta. */
+    resumo: z.string().min(10).max(110).optional(),
     /** Exemplo de uso, pode ter várias linhas e comentários. */
     exemplo: z.string().optional(),
     /** Flags/opções principais. */

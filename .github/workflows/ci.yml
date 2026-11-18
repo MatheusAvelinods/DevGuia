@@ -32,12 +32,13 @@ jobs:
       - run: npm run count
       # Testes de unidade: schema Zod dos YAML, regras entre arquivos, verificador de links
       - run: npm test
-      # O build também valida os YAML (Content Collections) e falha se algo estiver incompleto
+      # Navegador: gera o PDF da cheat sheet no build e roda os testes no navegador
+      - run: npx playwright install --with-deps chromium
+      # O build valida os YAML (Content Collections), gera a cheat sheet (.md/.html) e o PDF
       - run: npm run build
       - run: npm run check:links
 
-      # Smoke test no navegador: páginas, filtro, copiar e busca de todos os comandos
-      - run: npx playwright install --with-deps chromium
+      # Smoke test no navegador: páginas, filtros, copiar, Modo Treino, downloads e busca
       - run: npm run test:e2e
 
       # Lighthouse ≥ 95 em performance, acessibilidade e SEO (lighthouserc.json)

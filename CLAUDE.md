@@ -22,11 +22,18 @@ Publicado no GitHub Pages em https://matheusavelinods.github.io/DevGuia/ (`base:
 - `src/scripts/progresso.ts` — progresso e recordes no `localStorage` (sem cookies, sem servidor)
 - `src/pages/[tecnologia]/referencia.astro` — página de referência gerada
 - `src/pages/treino.astro` — Modo Treino; `src/pages/comandos.json.ts` — todos os comandos em JSON
+- `src/pages/cheatsheet.astro` — cheat sheet (tela + CSS de impressão que vira o PDF)
+- `src/lib/cheatsheet.ts` (dados) e `src/lib/cheatsheet-formatos.ts` (Markdown/HTML, funções puras);
+  `src/pages/downloads/cheatsheet.{md,html}.ts` geram os downloads no build
+- `scripts/gerar-pdf.mjs` — PDF via Playwright depois do build; `scripts/servir-dist.mjs` — servidor do `dist/`
+- `src/styles/print.css` — impressão de qualquer página (cores claras, sem botões)
 
 ## Comandos
 
 - `npm run dev` — servidor local
-- `npm run build` — gera `dist/` (falha se o conteúdo não passar no schema)
+- `npm run build` — `astro build` + PDF da cheat sheet (precisa do Chromium: `npx playwright install chromium`);
+  falha se o conteúdo não passar no schema
+- `npm run build:site` — só o `astro build`, sem PDF (o `check:links` acusa o PDF ausente)
 - `npm run lint` / `npm run format` — ESLint + Prettier
 - `npm run check` — checagem de tipos (astro check)
 - `npm run count` — contagem de comandos (mínimo por tecnologia)
@@ -38,6 +45,7 @@ Publicado no GitHub Pages em https://matheusavelinods.github.io/DevGuia/ (`base:
 - Conteúdo e interface em PT-BR.
 - Comandos ficam só em `src/content/commands/<tec>/*.yaml`; nunca duplicar a ficha de um comando em MDX (usar `<ComandoRef id="..." />`). Sessões de terminal ilustrativas nos tutoriais são permitidas.
 - Todo comando destrutivo tem `destrutivo: true` e um `aviso` (o schema exige).
+- A cheat sheet usa a primeira frase da `descricao`; quando ela não basta, preencha `resumo`.
 - Textos YAML com `: ` (dois-pontos + espaço) precisam de aspas.
 - Links internos em Markdown/MDX levam a base: `/DevGuia/...`.
 - Cores com significado fixo: `<Dica>` azul, `<Aviso>` amarelo, `<Aviso destrutivo>` vermelho.

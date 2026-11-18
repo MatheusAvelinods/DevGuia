@@ -17,7 +17,7 @@ export default defineConfig({
     starlight({
       title: 'DevGuia',
       logo: { src: './src/assets/logo.svg', alt: '' },
-      customCss: ['./src/styles/tema.css'],
+      customCss: ['./src/styles/tema.css', './src/styles/print.css'],
       components: {
         PageFrame: './src/components/overrides/PageFrame.astro',
         Hero: './src/components/overrides/Hero.astro',
@@ -55,6 +55,7 @@ export default defineConfig({
           ],
         },
         { label: '🎮 Modo Treino', link: '/treino/' },
+        { label: '📄 Cheat Sheet', link: '/cheatsheet/' },
         { label: 'Sobre', link: '/sobre/' },
       ],
     }),

@@ -65,6 +65,7 @@ comandos:
   - id: docker-init
     comando: docker init
     descricao: Gera um Dockerfile, um compose.yaml e um .dockerignore iniciais, perguntando a linguagem do projeto. Vem com o Docker Desktop (não existe no Docker Engine puro).
+    resumo: Gera Dockerfile, compose.yaml e .dockerignore iniciais (vem com o Docker Desktop).
     nivel: basico
     tags: [build, dockerfile, compose, iniciar]
     relacionados: [docker-build, docker-compose-up]
